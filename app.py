@@ -11,6 +11,12 @@ import boto3
 
 load_dotenv()
 
+# AWS Credentials
+aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id,
+                  aws_secret_access_key=aws_secret_access_key)
+
 # Constants
 CURRENT_DIR = os.path.dirname(__file__)
 
@@ -75,23 +81,17 @@ def download_template():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    # AWS Credentials
-    aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
-    aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-    s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id,
-                    aws_secret_access_key=aws_secret_access_key)
-
     error = None
 
-    if 'csv' not in request.files:
-        error = 'There was no CSV content'
+    try:
+        if 'csv' not in request.files:
+            raise Exception('There was no CSV content')
 
-    file = request.files['csv']
+        file = request.files['csv']
 
-    if file.filename == '':
-        error = 'The CSV file was unnamed'
+        if file.filename == '':
+            raise Exception('The CSV file was unnamed')
 
-    if error is None:
         # Generate a timestamp for the filename
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
 
@@ -102,16 +102,13 @@ def upload_file():
         # Save the file with the new filename
         file.save(file_path)
 
-        try:
-            # Upload the file to S3 using the new filename
-            s3.upload_file(file_path, UPLOADS_BUCKET, filename)
+        # Upload the file to S3 using the new filename
+        s3.upload_file(file_path, UPLOADS_BUCKET, filename)
 
-            # Clear local file
-            os.remove(file_path)
-
-            return 'File uploaded successfully'
-        except Exception as e:
-            return f'Error: {str(e)}'
+        # Clear local file
+        os.remove(file_path)        
+    except Exception as e:
+        error = e
 
     return render_template('form.html', error=error)
 
