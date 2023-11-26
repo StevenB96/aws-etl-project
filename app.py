@@ -108,7 +108,10 @@ def upload_file():
         # Clear local file
         os.remove(file_path)        
     except Exception as e:
-        error = e
+        return e
+
+        # Clear local file
+        os.remove(file_path) 
 
     return render_template('form.html', error=error)
 
