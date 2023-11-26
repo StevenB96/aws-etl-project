@@ -108,7 +108,7 @@ def upload_file():
         # Clear local file
         os.remove(file_path)        
     except Exception as e:
-        return e
+        error = e
 
         # Clear local file
         os.remove(file_path) 
