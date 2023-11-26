@@ -81,7 +81,7 @@ def download_template():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    return aws_secret_access_key
+    return "aws_secret_access_key"
     error = None
 
     try:
