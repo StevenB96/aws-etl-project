@@ -81,6 +81,7 @@ def download_template():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    return aws_secret_access_key
     error = None
 
     try:
@@ -103,9 +104,7 @@ def upload_file():
         file.save(file_path)
 
         # Upload the file to S3 using the new filename
-        print("Attempting S3 upload")
-        s3.upload_file(file_path, UPLOADS_BUCKET, filename)
-        print("S3 upload successful")    
+        s3.upload_file(file_path, UPLOADS_BUCKET, filename)     
     except Exception as e:
         error = e
     finally:
