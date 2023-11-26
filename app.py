@@ -104,7 +104,7 @@ def upload_file():
         file.save(os.path.join(UPLOADS_DIR, filename))
 
         # Upload the file to S3
-        s3.upload_file(UPLOADS_DIR, UPLOADS_BUCKET, filename)
+        s3.upload_file(os.path.join(UPLOADS_DIR, filename), UPLOADS_BUCKET, filename)
 
         # Clear local file
         file_path = os.path.join(UPLOADS_DIR, filename)
