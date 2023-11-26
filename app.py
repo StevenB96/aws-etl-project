@@ -88,8 +88,6 @@ def upload_file():
 
     file = request.files['csv']
 
-    # Perform file checks, manipulations and updates
-
     if file.filename == '':
         error = 'The CSV file was unnamed'
 
@@ -105,16 +103,11 @@ def upload_file():
         file.save(file_path)
 
         try:
-            # Use a temporary file to save the uploaded content
-            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-                temp_file_path = temp_file.name
-                file.save(temp_file_path)
+            # Upload the file to S3 using the new filename
+            s3.upload_file(file_path, UPLOADS_BUCKET, filename)
 
-                # Upload the file to S3
-                s3.upload_file(temp_file_path, UPLOADS_BUCKET, file.filename)
-
-                # Clear local temporary file
-                os.remove(temp_file_path)
+            # Clear local file
+            os.remove(file_path)
 
             return 'File uploaded successfully'
         except Exception as e:
