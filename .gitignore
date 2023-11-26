@@ -1,0 +1,73 @@
+# Python related
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Flask related
+instance/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment variables
+.env
+
+# IDE related
+.vscode/
+.idea/
+
+# Compiled Python files
+*.pyc
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Flask-SQLAlchemy
+.db
+
+# Flask-Migrate
+migrations/
+
+# SQLAlchemy
+db.sqlite
+db.sqlite3
+
+# PyInstaller
+build/
+dist/
+
+# Virtual environment
+venv/
+
+# Raw data
+raw_datasets/
+
+# Uploads
+uploads/
+
+# Pem files
+*.pem

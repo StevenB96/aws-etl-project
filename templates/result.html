@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Movie Idea Tester</title>
+    <!-- External Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-4.5.2.min.css') }}">
+
+    <!-- External Scripts -->
+    <script src="/static/js/jquery-3.6.0.min.js"></script>
+    <script src="/static/js/bootstrap-4.5.2.min.js"></script>
+
+    <!-- Internal Styles -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #C9C9CA;
+        }
+
+        .container {
+            padding: 20px;
+            width: 100%;
+            max-width: none;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .internalContainer {
+            width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .result {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .back-button {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-button a {
+            display: inline-block;
+            background-color: #007BFF;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            text-decoration: none;
+        }
+
+        .back-button a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Predictions</h1>
+        <div class="internalContainer">
+            <div class="result">
+                <p>Profit:<br>{{ profit }}</p>
+            </div>
+            <div class="back-button">
+                <a href="/form">Back</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
