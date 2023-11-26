@@ -103,15 +103,12 @@ def upload_file():
         file.save(file_path)
 
         # Upload the file to S3 using the new filename
-        s3.upload_file(file_path, UPLOADS_BUCKET, filename)
-
-        # Clear local file
-        os.remove(file_path)        
+        s3.upload_file(file_path, UPLOADS_BUCKET, filename)     
     except Exception as e:
         error = e
-
-        # Clear local file
-        os.remove(file_path) 
+    finally:
+        if file_path:
+            os.remove(file_path)
 
     return render_template('form.html', error=error)
 
