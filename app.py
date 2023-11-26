@@ -99,16 +99,17 @@ def upload_file():
 
         # Append the timestamp to the original filename
         filename = timestamp + '_' + secure_filename(file.filename)
+        file_path = os.path.join(UPLOADS_DIR, filename)
 
         # Save the file with the new filename
-        file.save(os.path.join(UPLOADS_DIR, filename))
+        file.save(file_path)
 
-        # Upload the file to S3
-        s3.upload_file(os.path.join(UPLOADS_DIR, filename), UPLOADS_BUCKET, filename)
+        with open(file_path, 'rb') as fileobj:
+            # Upload the file to S3
+            s3.upload_file(file_path, UPLOADS_BUCKET, filename)
 
-        # Clear local file
-        file_path = os.path.join(UPLOADS_DIR, filename)
-        os.remove(file_path)
+            # Clear local file
+            os.remove(file_path)
 
     return render_template('form.html', error=error)
 
