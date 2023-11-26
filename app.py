@@ -103,7 +103,9 @@ def upload_file():
         file.save(file_path)
 
         # Upload the file to S3 using the new filename
-        s3.upload_file(file_path, UPLOADS_BUCKET, filename)     
+        print("Attempting S3 upload")
+        s3.upload_file(file_path, UPLOADS_BUCKET, filename)
+        print("S3 upload successful")    
     except Exception as e:
         error = e
     finally:
