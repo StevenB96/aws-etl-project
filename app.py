@@ -35,7 +35,8 @@ class EtlProjectApp(Flask):
         self.decision_tree_model = joblib.load(DECISION_TREE_MODEL_PATH)
 
     def setup_logging(self):
-        handler = RotatingFileHandler(LOG_FILE_PATH, maxBytes=10000, backupCount=1)
+        handler = RotatingFileHandler(
+            LOG_FILE_PATH, maxBytes=10000, backupCount=1)
         handler.setLevel(logging.ERROR)
         self.logger.addHandler(handler)
 
@@ -137,7 +138,8 @@ class EtlProjectApp(Flask):
         matching_rows = self.input_data[(self.input_data['lead'] == lead)]
         lead_average_profit_ratio = matching_rows['profit_ratio'].mean()
 
-        matching_rows = self.input_data[(self.input_data['director'] == director)]
+        matching_rows = self.input_data[(
+            self.input_data['director'] == director)]
         director_average_profit_ratio = matching_rows['profit_ratio'].mean()
 
         lead_worked_in_genre_count = self.input_data[
