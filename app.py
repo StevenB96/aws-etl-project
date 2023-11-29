@@ -62,7 +62,6 @@ class EtlProjectApp(Flask):
 
     def upload_file(self):
         error = None
-        file_path = None  # Initialize file_path outside the try block
 
         try:
             # Check if 'csv' is present in the request.files
@@ -80,22 +79,14 @@ class EtlProjectApp(Flask):
 
             # Append the timestamp to the original filename
             filename = timestamp + '_' + secure_filename(file.filename)
-            file_path = os.path.join(UPLOADS_DIR, filename)
 
-            # Save the file with the new filename
-            file.save(file_path)
-
-            # Upload the file to S3 using the new filename
-            self.s3.upload_file(file_path, UPLOADS_BUCKET, filename)
+            # Upload the file to S3 directly from the stream
+            self.s3.upload_fileobj(file, UPLOADS_BUCKET, filename)
 
         except Exception as e:
             error = str(e)
             # Add debug statement to print the exception
             print(f"Error during file upload: {error}")
-        finally:
-            # Remove the file if it exists
-            if file_path and os.path.exists(file_path):
-                os.remove(file_path)
 
         # Return the rendered template with error information
         return render_template('form.html', error=error)
