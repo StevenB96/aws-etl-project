@@ -9,20 +9,17 @@ from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 import boto3
 
-# AWS Credentials
-aws_access_key_id = None
-aws_secret_access_key = None
-s3 = None
 
 def load_env():
+    global aws_access_key_id, aws_secret_access_key, s3
     load_dotenv()
+
     # AWS Credentials
     aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
     aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
     s3 = boto3.client('s3', aws_access_key_id=aws_access_key_id,
-                    aws_secret_access_key=aws_secret_access_key)
-    
-load_env()
+                      aws_secret_access_key=aws_secret_access_key)
+
 
 # Constants
 CURRENT_DIR = os.path.dirname(__file__)
@@ -88,7 +85,6 @@ def download_template():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    load_env()
     error = None
 
     try:
@@ -111,7 +107,7 @@ def upload_file():
         file.save(file_path)
 
         # Upload the file to S3 using the new filename
-        s3.upload_file(file_path, UPLOADS_BUCKET, filename)     
+        s3.upload_file(file_path, UPLOADS_BUCKET, filename)
     except Exception as e:
         error = e
     finally:
@@ -207,5 +203,5 @@ def index():
 
 
 if __name__ == '__main__':
-    # host='0.0.0.0', port=5000,
+    load_env()
     app.run(debug=True)
