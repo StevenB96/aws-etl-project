@@ -103,7 +103,7 @@ class EtlProjectApp(Flask):
         print(f"Upload error: {error}")
 
         # Return the rendered template with error information
-        return render_template('form.html', error=error)
+        return render_template('form.html', error=self.aws_access_key_id)
 
     def search(self):
         search_term = request.args.get('search_term')
