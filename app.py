@@ -60,7 +60,6 @@ class EtlProjectApp(Flask):
         return response
 
     def upload_file(self):
-        # self.load_env()
         error = None
         file_path = None  # Initialize file_path outside the try block
 
@@ -104,7 +103,7 @@ class EtlProjectApp(Flask):
         print(f"Upload error: {error}")
 
         # Return the rendered template with error information
-        return render_template('form.html', error=self.aws_access_key_id)
+        return render_template('form.html', error=os.getenv("AWS_ACCESS_KEY_ID"))
 
     def search(self):
         search_term = request.args.get('search_term')
