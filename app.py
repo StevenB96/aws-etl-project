@@ -60,6 +60,7 @@ class EtlProjectApp(Flask):
         return response
 
     def upload_file(self):
+        self.load_env()
         error = None
         file_path = None  # Initialize file_path outside the try block
 
