@@ -12,6 +12,7 @@ import boto3
 # AWS Credentials
 aws_access_key_id = None
 aws_secret_access_key = None
+s3 = None
 
 def load_env():
     load_dotenv()
