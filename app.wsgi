@@ -1,9 +1,5 @@
 import os
 import sys
-from dotenv import load_dotenv
-
-# Load environment variables from a .env file
-load_dotenv()
 
 # Get the directory of the current script
 current_dir = os.path.dirname(__file__)

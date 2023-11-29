@@ -6,8 +6,9 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 import logging
 from logging.handlers import RotatingFileHandler
-from dotenv import load_dotenv
 import boto3
+from env import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
+
 
 class EtlProjectApp(Flask):
     def __init__(self, *args, **kwargs):
@@ -21,9 +22,8 @@ class EtlProjectApp(Flask):
         self.load_data_and_models()
 
     def load_env(self):
-        # load_dotenv()
-        self.aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
-        self.aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        self.aws_access_key_id = AWS_ACCESS_KEY_ID
+        self.aws_secret_access_key = AWS_SECRET_ACCESS_KEY
         self.s3 = boto3.client('s3', aws_access_key_id=self.aws_access_key_id,
                                aws_secret_access_key=self.aws_secret_access_key)
 
@@ -92,18 +92,12 @@ class EtlProjectApp(Flask):
             # Add debug statement to print the exception
             print(f"Error during file upload: {error}")
         finally:
-            # Add debug statement to print the file_path
-            print(f"File path: {file_path}")
-
             # Remove the file if it exists
             if file_path and os.path.exists(file_path):
                 os.remove(file_path)
 
-        # Add debug statement to print the error
-        print(f"Upload error: {error}")
-
         # Return the rendered template with error information
-        return render_template('form.html', error=os.getenv("AWS_ACCESS_KEY_ID"))
+        return render_template('form.html', error=error)
 
     def search(self):
         search_term = request.args.get('search_term')
