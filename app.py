@@ -9,11 +9,10 @@ from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 import boto3
 
-
-def load_env():
-    global aws_access_key_id, aws_secret_access_key, s3
+def load_env():    
     load_dotenv()
-
+    global aws_access_key_id, aws_secret_access_key, s3
+    
     # AWS Credentials
     aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
     aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -85,6 +84,7 @@ def download_template():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    load_dotenv()
     error = None
 
     try:
