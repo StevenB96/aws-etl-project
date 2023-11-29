@@ -6,7 +6,7 @@
     <title>Movie Idea Tester</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-4.5.2.min.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/select2-4.0.13.min.css') }}">
-    
+
     <!-- External Scripts -->
     <script src="/static/js/jquery-3.6.0.min.js"></script>
     <script src="/static/js/bootstrap-4.5.2.min.js"></script>
@@ -125,6 +125,10 @@
 
 <script>
     $(document).ready(function () {
+        {% if error %}
+        alert("{{ error }}");
+        {% endif %}
+
         // Reset all fields to their default values
         $('#lead, #director, #genre').val('').trigger('change');
         $('#budget').val(10000000);
