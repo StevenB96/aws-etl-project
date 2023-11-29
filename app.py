@@ -9,9 +9,9 @@ from logging.handlers import RotatingFileHandler
 from dotenv import load_dotenv
 import boto3
 
-class MyApp(Flask):
+class EtlProjectApp(Flask):
     def __init__(self, *args, **kwargs):
-        super(MyApp, self).__init__(*args, **kwargs)
+        super(EtlProjectApp, self).__init__(*args, **kwargs)
         self.setup()
 
     def setup(self):
@@ -192,7 +192,7 @@ UPLOADS_BUCKET = 'etl-project-uploads'
 if not os.path.exists(UPLOADS_DIR):
     os.makedirs(UPLOADS_DIR)
 
-app = MyApp(__name__)
+app = EtlProjectApp(__name__)
 
 if __name__ == '__main__':
     app.run(debug=True)
