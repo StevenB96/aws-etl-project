@@ -8,7 +8,7 @@ from io import StringIO
 class ETLProcessor:
     def __init__(self):
         self.load_env()
-        self.initialize_constants()
+        self.initialise_constants()
 
     def load_env(self):
         # Load AWS credentials from environment
@@ -17,7 +17,7 @@ class ETLProcessor:
         self.s3 = boto3.client('s3', aws_access_key_id=self.aws_access_key_id,
                                aws_secret_access_key=self.aws_secret_access_key)
 
-    def initialize_constants(self):
+    def initialise_constants(self):
         # Define constants for S3 buckets and file names
         self.PROCESSED_BUCKET = 'etl-project-data-processed'
         self.UPLOADS_BUCKET = 'etl-project-uploads'
@@ -62,7 +62,7 @@ class ETLProcessor:
             elif "unique_genres" in file_key:
                 self.unique_genres_data_frame = data_frame
 
-            print(f"DataFrame created from {file_key}")
+            print(f"Dataframe created from s3: {file_key}")
 
     def download_uploads(self):
         objects = self.s3.list_objects(Bucket=self.UPLOADS_BUCKET)
@@ -78,7 +78,7 @@ class ETLProcessor:
             # Append the DataFrame to the list
             uploads_data_frames.append(data_frame)
 
-            print(f"DataFrame created from {file_key}")
+            print(f"Dataframe created from s3: {file_key}")
 
         if not uploads_data_frames:
             return

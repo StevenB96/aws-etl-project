@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 import logging
 from logging.handlers import RotatingFileHandler
 import boto3
+from io import StringIO
 from env import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 
@@ -17,9 +18,11 @@ class EtlProjectApp(Flask):
 
     def setup(self):
         self.load_env()
+        self.initialise_constants()
         self.setup_routes()
         self.setup_logging()
-        self.load_data_and_models()
+        self.download_processed_data()
+        self.load_model()
 
     def load_env(self):
         self.aws_access_key_id = AWS_ACCESS_KEY_ID
@@ -27,16 +30,68 @@ class EtlProjectApp(Flask):
         self.s3 = boto3.client('s3', aws_access_key_id=self.aws_access_key_id,
                                aws_secret_access_key=self.aws_secret_access_key)
 
-    def load_data_and_models(self):
-        # Load the input_data from the CSV file
-        self.input_data = pd.read_csv(INPUT_DATA_PATH)
+    def initialise_constants(self):
+        # Define constants for S3 buckets and file names
+        self.PROCESSED_BUCKET = 'etl-project-data-processed'
+        self.UPLOADS_BUCKET = 'etl-project-uploads'
+        self.INPUT_DATA_FILE = 'input_data.csv'
+        self.UNIQUE_DIRECTORS_FILE = 'unique_directors.csv'
+        self.UNIQUE_GENRES_FILE = 'unique_genres.csv'
+        self.UNIQUE_LEADS_FILE = 'unique_leads.csv'
+        self.CURRENT_DIR = os.path.dirname(__file__)
+        self.MODEL_DIR = os.path.join(self.CURRENT_DIR, 'ml_model')
+        self.MODEL_FILE = 'decision_tree_model.pkl'
+        self.LOG_FILE = 'app.log'
+        self.LOG_FILE_PATH = os.path.join(self.CURRENT_DIR, self.LOG_FILE)
+        self.TEMPLATE_FILE_PATH = os.path.join(
+            self.CURRENT_DIR, 'template.csv')
+        self.DECISION_TREE_MODEL_PATH = os.path.join(
+            self.MODEL_DIR, self.MODEL_FILE)
 
+        # Variables to keep .csv data in state
+        self.meta_data_frame = None
+        self.unique_leads_data_frame = None
+        self.unique_directors_data_frame = None
+        self.unique_genres_data_frame = None
+
+    def load_model(self):
         # Load the models using joblib
-        self.decision_tree_model = joblib.load(DECISION_TREE_MODEL_PATH)
+        self.decision_tree_model = joblib.load(self.DECISION_TREE_MODEL_PATH)
+
+    def download_csv_from_s3(self, bucket, key):
+        # Download and read CSV content from S3
+        file_content = self.s3.get_object(Bucket=bucket, Key=key)[
+            'Body'].read().decode('utf-8')
+        return pd.read_csv(StringIO(file_content))
+
+    def download_processed_data(self):
+        file_keys = [
+            self.INPUT_DATA_FILE,
+            self.UNIQUE_DIRECTORS_FILE,
+            self.UNIQUE_GENRES_FILE,
+            self.UNIQUE_LEADS_FILE,
+        ]
+
+        # Download and read CSV files into DataFrames
+        for file_key in file_keys:
+            data_frame = self.download_csv_from_s3(
+                self.PROCESSED_BUCKET, file_key)
+
+            # Assign DataFrames to state fields based on key
+            if "input_data" in file_key:
+                self.meta_data_frame = data_frame
+            elif "unique_leads" in file_key:
+                self.unique_leads_data_frame = data_frame
+            elif "unique_directors" in file_key:
+                self.unique_directors_data_frame = data_frame
+            elif "unique_genres" in file_key:
+                self.unique_genres_data_frame = data_frame
+
+            print(f"Data frame created from s3: {file_key}")
 
     def setup_logging(self):
         handler = RotatingFileHandler(
-            LOG_FILE_PATH, maxBytes=10000, backupCount=1)
+            self.LOG_FILE_PATH, maxBytes=10000, backupCount=1)
         handler.setLevel(logging.ERROR)
         self.logger.addHandler(handler)
 
@@ -50,7 +105,7 @@ class EtlProjectApp(Flask):
 
     def download_template(self):
         # Read CSV data from the file
-        with open(TEMPLATE_FILE_PATH, 'r', newline='', encoding='utf-8') as file:
+        with open(self.TEMPLATE_FILE_PATH, 'r', newline='', encoding='utf-8') as file:
             csv_data = file.read()
 
         # Create a response with appropriate headers
@@ -77,7 +132,7 @@ class EtlProjectApp(Flask):
             filename = timestamp + '_' + secure_filename(file.filename)
 
             # Upload the file to S3 directly from the stream
-            self.s3.upload_fileobj(file, UPLOADS_BUCKET, filename)
+            self.s3.upload_fileobj(file, self.UPLOADS_BUCKET, filename)
 
         except Exception as e:
             error = str(e)
@@ -97,15 +152,14 @@ class EtlProjectApp(Flask):
 
             # Retrieve the appropriate data list based on field_name
             if field_name == 'lead':
-                unique_leads = pd.read_csv(UNIQUE_LEADS_PATH)
-                data_list = unique_leads.to_dict(orient='records')
+                data_list = self.unique_leads_data_frame.to_dict(
+                    orient='records')
             elif field_name == 'director':
-                unique_directors = pd.read_csv(
-                    UNIQUE_DIRECTORS_PATH)
-                data_list = unique_directors.to_dict(orient='records')
+                data_list = self.unique_directors_data_frame.to_dict(
+                    orient='records')
             elif field_name == 'genre':
-                unique_genres = pd.read_csv(UNIQUE_GENRES_PATH)
-                data_list = unique_genres.to_dict(orient='records')
+                data_list = self.unique_genres_data_frame.to_dict(
+                    orient='records')
 
             filtered_items = [item for item in data_list if item.get(
                 field_name, "").lower().startswith(search_term.lower()) if field_name in item]
@@ -115,6 +169,9 @@ class EtlProjectApp(Flask):
         return {'results': []}
 
     def predict(self):
+        # Shortened name for self.uploads_data_frames
+        meta_df = self.meta_data_frame
+
         # Extract input data from the POST request
         lead = float(request.form.get('lead'))
         director = float(request.form.get('director'))
@@ -122,26 +179,26 @@ class EtlProjectApp(Flask):
         budget = float(request.form.get('budget'))
 
         # Calculate artificial features
-        matching_rows = self.input_data[(self.input_data['lead'] == lead)]
+        matching_rows = meta_df[(meta_df['lead'] == lead)]
         lead_average_profit_ratio = matching_rows['profit_ratio'].mean()
 
-        matching_rows = self.input_data[(
-            self.input_data['director'] == director)]
+        matching_rows = meta_df[(
+            meta_df['director'] == director)]
         director_average_profit_ratio = matching_rows['profit_ratio'].mean()
 
-        lead_worked_in_genre_count = self.input_data[
-            (self.input_data['lead'] == lead) &
-            (self.input_data['genre'] == genre)
+        lead_worked_in_genre_count = meta_df[
+            (meta_df['lead'] == lead) &
+            (meta_df['genre'] == genre)
         ].shape[0]
 
-        director_worked_in_genre_count = self.input_data[
-            (self.input_data['director'] == director) &
-            (self.input_data['genre'] == genre)
+        director_worked_in_genre_count = meta_df[
+            (meta_df['director'] == director) &
+            (meta_df['genre'] == genre)
         ].shape[0]
 
-        director_worked_with_lead_count = self.input_data[
-            (self.input_data['director'] == director) &
-            (self.input_data['lead'] == lead)
+        director_worked_with_lead_count = meta_df[
+            (meta_df['director'] == director) &
+            (meta_df['lead'] == lead)
         ].shape[0]
 
         # Create an input array for prediction
@@ -166,29 +223,6 @@ class EtlProjectApp(Flask):
     def index(self):
         return render_template('form.html')
 
-
-# Constants
-CURRENT_DIR = os.path.dirname(__file__)
-DATASETS_DIR = os.path.join(CURRENT_DIR, 'datasets')
-MODEL_DIR = os.path.join(CURRENT_DIR, 'ml_model')
-UNIQUE_LEADS_FILE = 'unique_leads.csv'
-UNIQUE_DIRECTORS_FILE = 'unique_directors.csv'
-UNIQUE_GENRES_FILE = 'unique_genres.csv'
-INPUT_DATA_FILE = 'input_data.csv'
-MODEL_FILE = 'decision_tree_model.pkl'
-LOG_FILE = 'app.log'
-DECISION_TREE_MODEL_PATH = os.path.join(MODEL_DIR, MODEL_FILE)
-UNIQUE_LEADS_PATH = os.path.join(DATASETS_DIR, UNIQUE_LEADS_FILE)
-UNIQUE_DIRECTORS_PATH = os.path.join(DATASETS_DIR, UNIQUE_DIRECTORS_FILE)
-UNIQUE_GENRES_PATH = os.path.join(DATASETS_DIR, UNIQUE_GENRES_FILE)
-INPUT_DATA_PATH = os.path.join(DATASETS_DIR, INPUT_DATA_FILE)
-LOG_FILE_PATH = os.path.join(CURRENT_DIR, LOG_FILE)
-TEMPLATE_FILE_PATH = os.path.join(CURRENT_DIR, 'template.csv')
-UPLOADS_DIR = os.path.join(CURRENT_DIR, 'uploads')
-UPLOADS_BUCKET = 'etl-project-uploads'
-
-if not os.path.exists(UPLOADS_DIR):
-    os.makedirs(UPLOADS_DIR)
 
 if __name__ == '__main__':
     app = EtlProjectApp(__name__)
