@@ -66,13 +66,9 @@ class EtlProjectApp(Flask):
         try:
             # Check if 'csv' is present in the request.files
             if 'csv' not in request.files:
-                raise Exception('No CSV file in the request')
+                raise Exception('Error: No CSV file in the request')
 
             file = request.files['csv']
-
-            # Check if the filename is empty
-            if file.filename == '':
-                raise Exception('The CSV file has no name')
 
             # Generate a timestamp for the filename
             timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
@@ -194,7 +190,6 @@ UPLOADS_BUCKET = 'etl-project-uploads'
 if not os.path.exists(UPLOADS_DIR):
     os.makedirs(UPLOADS_DIR)
 
-app = EtlProjectApp(__name__)
-
 if __name__ == '__main__':
+    app = EtlProjectApp(__name__)
     app.run(debug=True)
