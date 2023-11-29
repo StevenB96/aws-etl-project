@@ -12,7 +12,7 @@ htmlcov/
 
 # Environment variables
 .env
-.env.py
+env.py
 
 # IDE related
 .vscode/
