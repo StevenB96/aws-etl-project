@@ -21,7 +21,7 @@ class EtlProjectApp(Flask):
         self.load_data_and_models()
 
     def load_env(self):
-        load_dotenv()
+        # load_dotenv()
         self.aws_access_key_id = os.getenv("AWS_ACCESS_KEY_ID")
         self.aws_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         self.s3 = boto3.client('s3', aws_access_key_id=self.aws_access_key_id,
@@ -60,7 +60,7 @@ class EtlProjectApp(Flask):
         return response
 
     def upload_file(self):
-        self.load_env()
+        # self.load_env()
         error = None
         file_path = None  # Initialize file_path outside the try block
 
