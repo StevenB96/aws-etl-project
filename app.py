@@ -224,6 +224,7 @@ class EtlProjectApp(Flask):
         return render_template('form.html')
 
 
+app = EtlProjectApp(__name__)
+
 if __name__ == '__main__':
-    app = EtlProjectApp(__name__)
     app.run(debug=True)
