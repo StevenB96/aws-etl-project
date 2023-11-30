@@ -8,6 +8,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 import boto3
 from io import StringIO
+from io import BytesIO
 from env import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY
 
 
@@ -22,7 +23,7 @@ class EtlProjectApp(Flask):
         self.setup_routes()
         self.setup_logging()
         self.download_processed_data()
-        self.load_model()
+        self.download_model_from_s3()
 
     def load_env(self):
         self.aws_access_key_id = AWS_ACCESS_KEY_ID
@@ -34,29 +35,34 @@ class EtlProjectApp(Flask):
         # Define constants for S3 buckets and file names
         self.PROCESSED_BUCKET = 'etl-project-data-processed'
         self.UPLOADS_BUCKET = 'etl-project-uploads'
+        self.MODEL_BUCKET = 'etl-project-ml-model'
         self.INPUT_DATA_FILE = 'input_data.csv'
         self.UNIQUE_DIRECTORS_FILE = 'unique_directors.csv'
         self.UNIQUE_GENRES_FILE = 'unique_genres.csv'
         self.UNIQUE_LEADS_FILE = 'unique_leads.csv'
         self.CURRENT_DIR = os.path.dirname(__file__)
-        self.MODEL_DIR = os.path.join(self.CURRENT_DIR, 'ml_model')
         self.MODEL_FILE = 'decision_tree_model.pkl'
         self.LOG_FILE = 'app.log'
         self.LOG_FILE_PATH = os.path.join(self.CURRENT_DIR, self.LOG_FILE)
         self.TEMPLATE_FILE_PATH = os.path.join(
             self.CURRENT_DIR, 'template.csv')
-        self.DECISION_TREE_MODEL_PATH = os.path.join(
-            self.MODEL_DIR, self.MODEL_FILE)
 
         # Variables to keep .csv data in state
         self.meta_data_frame = None
         self.unique_leads_data_frame = None
         self.unique_directors_data_frame = None
         self.unique_genres_data_frame = None
+        self.decision_tree_model = None
 
-    def load_model(self):
-        # Load the models using joblib
-        self.decision_tree_model = joblib.load(self.DECISION_TREE_MODEL_PATH)
+    def download_model_from_s3(self):
+        # Download the model file from S3
+        model_file_content = self.s3.get_object(
+            Bucket=self.MODEL_BUCKET, Key=self.MODEL_FILE)['Body'].read()
+
+        # Load the model from the downloaded content
+        self.decision_tree_model = joblib.load(BytesIO(model_file_content))
+
+        print(f"Model downloaded from S3: {self.MODEL_FILE}")
 
     def download_csv_from_s3(self, bucket, key):
         # Download and read CSV content from S3
