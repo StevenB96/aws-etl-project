@@ -21,7 +21,7 @@ class EtlProjectApp(Flask):
         self.load_env()
         self.initialise_constants()
         self.setup_routes()
-        self.setup_logging()
+        # self.setup_logging()
         self.download_processed_data()
         self.download_model_from_s3()
 
