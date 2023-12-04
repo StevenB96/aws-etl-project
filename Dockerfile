@@ -17,5 +17,5 @@ EXPOSE 80
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
-# Run the Flask application
-CMD ["flask", "run"]
+# Use Gunicorn to run the application
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]
