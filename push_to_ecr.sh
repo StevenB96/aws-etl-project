@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Source the Python script to get the values
-source ./app.py
+source ./env.py
 
 # AWS Configuration
 AWS_ACCESS_KEY_ID="$AWS_ACCESS_KEY_ID"
@@ -11,6 +11,10 @@ AWS_SECRET_ACCESS_KEY="$AWS_SECRET_ACCESS_KEY"
 AWS_REGION="us-east-1"
 AWS_ACCOUNT_ID="690469543125"
 ECR_REPOSITORY="etl-project-container-repository"
+
+# Build the Docker image
+echo "Building the Docker image..."
+podman build -t aws_etl_project_image -f ./Dockerfile .
 
 # Authenticate with ECR
 echo "Authenticating with ECR..."
