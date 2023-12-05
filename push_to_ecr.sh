@@ -24,9 +24,12 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
+# Set AWS credentials in the environment
+export AWS_ACCESS_KEY_ID
+export AWS_SECRET_ACCESS_KEY
+
 # Generate ECR authentication token
-echo "Generating authentication token..."
-token=$(aws ecr get-authorization-token --region $AWS_REGION --output text --query 'authorizationData[].authorizationToken' --aws-access-key-id $AWS_ACCESS_KEY_ID --aws-secret-access-key $AWS_SECRET_ACCESS_KEY | cut -d" " -f2 | base64 -d)
+token=$(aws ecr get-authorization-token --region $AWS_REGION --output text --query 'authorizationData[].authorizationToken' | cut -d" " -f2 | base64 -d)
 
 # Authenticate with ECR using the generated token
 echo "Authenticating with ECR..."
