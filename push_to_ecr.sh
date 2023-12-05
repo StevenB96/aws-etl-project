@@ -25,7 +25,8 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Generate ECR authentication token
-token=$(aws ecr get-authorization-token --region $AWS_REGION --output text --query 'authorizationData[].authorizationToken' --aws-access-key-id $AWS_ACCESS_KEY_ID --aws-secret-access-key $AWS_SECRET_ACCESS_KEY | base64 -d | cut -d: -f2)
+echo "Generating authentication token..."
+token=$(aws ecr get-authorization-token --region $AWS_REGION --output text --query 'authorizationData[].authorizationToken' --aws-access-key-id $AWS_ACCESS_KEY_ID --aws-secret-access-key $AWS_SECRET_ACCESS_KEY | cut -d" " -f2 | base64 -d)
 
 # Authenticate with ECR using the generated token
 echo "Authenticating with ECR..."
