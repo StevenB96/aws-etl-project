@@ -25,15 +25,12 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Set AWS credentials in the environment
-export AWS_ACCESS_KEY_ID
-export AWS_SECRET_ACCESS_KEY
-
-# Generate ECR authentication token
-token=$(aws ecr get-authorization-token --region $AWS_REGION --output text --query 'authorizationData[].authorizationToken' | cut -d" " -f2 | base64 -d)
+export "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
+export "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
 
 # Authenticate with ECR using the generated token
 echo "Authenticating with ECR..."
-podman login --username AWS --password $token $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+aws ecr get-login-password --region $AWS_REGION | podman login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
 # Check if authentication was successful
 if [[ $? -ne 0 ]]; then
