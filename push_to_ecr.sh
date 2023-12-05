@@ -28,7 +28,7 @@ fi
 export "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
 export "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
 
-# Authenticate with ECR using the generated token
+# Authenticate with ECR
 echo "Authenticating with ECR..."
 aws ecr get-login-password --region $AWS_REGION | podman login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
@@ -42,9 +42,9 @@ fi
 echo "Tagging the local image..."
 podman tag aws_etl_project_image:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
 
-# Push the image to ECR using the AWS access key and secret key
+# Push the image to ECR
 echo "Pushing the image to ECR..."
-podman push --creds=$AWS_ACCESS_KEY_ID:$AWS_SECRET_ACCESS_KEY $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+podman push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
 
 # Check if the push was successful
 if [[ $? -ne 0 ]]; then
