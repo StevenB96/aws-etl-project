@@ -24,9 +24,12 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# Authenticate with ECR
+# Generate ECR authentication token
+token=$(aws ecr get-authorization-token --region $AWS_REGION --output text --query 'authorizationData[].authorizationToken' --aws-access-key-id $AWS_ACCESS_KEY_ID --aws-secret-access-key $AWS_SECRET_ACCESS_KEY | base64 -d | cut -d: -f2)
+
+# Authenticate with ECR using the generated token
 echo "Authenticating with ECR..."
-aws ecr get-login-password --region $AWS_REGION | podman login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+podman login --username AWS --password $token $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
 # Check if authentication was successful
 if [[ $? -ne 0 ]]; then
