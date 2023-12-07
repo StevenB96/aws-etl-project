@@ -52,4 +52,8 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
+# Delete the local Docker image
+echo "Deleting the local Docker image..."
+podman rmi aws_etl_project_image:latest
+
 echo "Image successfully pushed to ECR."
