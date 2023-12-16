@@ -1,5 +1,25 @@
 #!/bin/bash
 
+# Default container service
+CONTAINER_SERVICE="podman"
+
+# Parse command-line arguments
+while [[ $# -gt 0 ]]; do
+    key="$1"
+
+    case $key in
+        --container-service)
+            CONTAINER_SERVICE="$2"
+            shift
+            shift
+            ;;
+        *)
+            echo "Unknown option: $1"
+            exit 1
+            ;;
+    esac
+done
+
 # Source the Python script to get the values
 source ./env.py
 
@@ -14,13 +34,13 @@ AWS_REGION="us-east-1"
 AWS_ACCOUNT_ID="690469543125"
 ECR_REPOSITORY="etl-project-container-repository"
 
-# Build the Docker image
-echo "Building the Docker image..."
-podman build -t aws_etl_project_image -f ./Dockerfile .
+# Build the container image using the specified service
+echo "Building the container image using $CONTAINER_SERVICE..."
+$CONTAINER_SERVICE build -t aws_etl_project_image -f ./Dockerfile .
 
 # Check if the build was successful
 if [[ $? -ne 0 ]]; then
-    echo "Error: Docker image build failed"
+    echo "Error: Container image build failed"
     exit 1
 fi
 
@@ -30,7 +50,7 @@ export "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
 
 # Authenticate with ECR
 echo "Authenticating with ECR..."
-aws ecr get-login-password --region $AWS_REGION | podman login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+aws ecr get-login-password --region $AWS_REGION | $CONTAINER_SERVICE login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
 # Check if authentication was successful
 if [[ $? -ne 0 ]]; then
@@ -38,13 +58,13 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# Tag your local Podman image with the ECR repository URI
+# Tag your local container image with the ECR repository URI
 echo "Tagging the local image..."
-podman tag aws_etl_project_image:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+$CONTAINER_SERVICE tag aws_etl_project_image:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
 
 # Push the image to ECR
 echo "Pushing the image to ECR..."
-podman push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+$CONTAINER_SERVICE push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
 
 # Check if the push was successful
 if [[ $? -ne 0 ]]; then
@@ -52,8 +72,8 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# Delete the local Docker image
-echo "Deleting the local Docker image..."
-podman rmi aws_etl_project_image:latest
+# Delete the local container image
+echo "Deleting the local container image..."
+$CONTAINER_SERVICE rmi aws_etl_project_image:latest
 
 echo "Image successfully pushed to ECR."
