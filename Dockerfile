@@ -2,10 +2,17 @@
 FROM python:3.11-slim
 
 RUN apt-get update && apt-get install -y \
+    sudo \
     net-tools \
     lsof \
     htop \
+    strace \
+    tcpdump \
+    iproute2 \
+    curl \
+    vim \
     && rm -rf /var/lib/apt/lists/*
+
 
 # Set the working directory in the container
 WORKDIR /app
@@ -27,4 +34,4 @@ ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
 # Use Gunicorn to run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "--timeout", "300", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "--timeout", "300", "--log-level", "debug", "app:app"]

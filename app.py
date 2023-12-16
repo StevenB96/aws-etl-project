@@ -98,7 +98,7 @@ class EtlProjectApp(Flask):
     def setup_logging(self):
         handler = RotatingFileHandler(
             self.LOG_FILE_PATH, maxBytes=10000, backupCount=1)
-        handler.setLevel(logging.ERROR)
+        handler.setLevel(logging.DEBUG)
         self.logger.addHandler(handler)
 
     def setup_routes(self):
