@@ -233,4 +233,5 @@ class EtlProjectApp(Flask):
 app = EtlProjectApp(__name__)
 
 if __name__ == '__main__':
+    app.logger.setLevel('DEBUG')
     app.run(debug=True)
