@@ -4,6 +4,9 @@ phases:
   pre_build:
     commands:
       - echo "Executing pre-build commands"
+      - echo "# AWS Configuration" > env.py
+      - echo "AWS_ACCESS_KEY_ID=\"$AWS_ACCESS_KEY_ID\"" >> env.py
+      - echo "AWS_SECRET_ACCESS_KEY=\"$AWS_SECRET_ACCESS_KEY\"" >> env.py
 
   build:
     commands:
