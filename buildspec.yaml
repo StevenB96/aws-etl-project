@@ -8,6 +8,7 @@ phases:
   build:
     commands:
       - echo "Executing build commands"
+      - chmod +x ./push_to_ecr.sh
       - ./push_to_ecr.sh
 
 post_build:
