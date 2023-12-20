@@ -4,15 +4,15 @@ phases:
   pre_build:
     commands:
       - echo "** Executing pre-build commands **"
-      - echo "Step 1:" && echo "# AWS Configuration" > env.py
-      - echo "Step 2:" && echo "AWS_ACCESS_KEY_ID=\"$AWS_ACCESS_KEY_ID\"" >> env.py
-      - echo "Step 3:" && echo "AWS_SECRET_ACCESS_KEY=\"$AWS_SECRET_ACCESS_KEY\"" >> env.py
+      - echo "# AWS Configuration" > env.py
+      - echo "AWS_ACCESS_KEY_ID=\"$AWS_ACCESS_KEY_ID\"" >> env.py
+      - echo "AWS_SECRET_ACCESS_KEY=\"$AWS_SECRET_ACCESS_KEY\"" >> env.py
 
   build:
     commands:
       - echo "** Executing build commands **"
-      - echo "Step 1:" && chmod +x ./push_to_ecr.sh
-      - echo "Step 2:" && ./push_to_ecr.sh --container-service docker
+      - chmod +x ./push_to_ecr.sh
+      - ./push_to_ecr.sh --container-service "docker"
 
 post_build:
   commands:
