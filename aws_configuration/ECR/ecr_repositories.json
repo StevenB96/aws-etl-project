@@ -1,0 +1,18 @@
+{
+    "repositories": [
+        {
+            "repositoryArn": "arn:aws:ecr:us-east-1:690469543125:repository/etl-project-container-repository",
+            "registryId": "690469543125",
+            "repositoryName": "etl-project-container-repository",
+            "repositoryUri": "690469543125.dkr.ecr.us-east-1.amazonaws.com/etl-project-container-repository",
+            "createdAt": "2023-12-05T17:08:51+00:00",
+            "imageTagMutability": "MUTABLE",
+            "imageScanningConfiguration": {
+                "scanOnPush": false
+            },
+            "encryptionConfiguration": {
+                "encryptionType": "AES256"
+            }
+        }
+    ]
+}

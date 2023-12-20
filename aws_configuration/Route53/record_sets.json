@@ -1,0 +1,53 @@
+{
+    "ResourceRecordSets": [
+        {
+            "Name": "stevenberrisford.com.",
+            "Type": "A",
+            "TTL": 300,
+            "ResourceRecords": [
+                {
+                    "Value": "18.207.121.251"
+                }
+            ]
+        },
+        {
+            "Name": "stevenberrisford.com.",
+            "Type": "NS",
+            "TTL": 172800,
+            "ResourceRecords": [
+                {
+                    "Value": "ns-1088.awsdns-08.org."
+                },
+                {
+                    "Value": "ns-377.awsdns-47.com."
+                },
+                {
+                    "Value": "ns-790.awsdns-34.net."
+                },
+                {
+                    "Value": "ns-1700.awsdns-20.co.uk."
+                }
+            ]
+        },
+        {
+            "Name": "stevenberrisford.com.",
+            "Type": "SOA",
+            "TTL": 900,
+            "ResourceRecords": [
+                {
+                    "Value": "ns-1088.awsdns-08.org. awsdns-hostmaster.amazon.com. 1 7200 900 1209600 86400"
+                }
+            ]
+        },
+        {
+            "Name": "flask-etl-demo.stevenberrisford.com.",
+            "Type": "CNAME",
+            "TTL": 300,
+            "ResourceRecords": [
+                {
+                    "Value": "internal-etl-project-load-balancer-182013874.us-east-1.elb.amazonaws.com"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,36 @@
+{
+    "InternetGateways": [
+        {
+            "Attachments": [
+                {
+                    "State": "available",
+                    "VpcId": "vpc-0be882623f829fa9e"
+                }
+            ],
+            "InternetGatewayId": "igw-046dd5f58fe642477",
+            "OwnerId": "690469543125",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "etl-project-internet-gateway"
+                }
+            ]
+        },
+        {
+            "Attachments": [
+                {
+                    "State": "available",
+                    "VpcId": "vpc-00f9bbb306435c8c4"
+                }
+            ],
+            "InternetGatewayId": "igw-07cb8f389c1a68cef",
+            "OwnerId": "690469543125",
+            "Tags": [
+                {
+                    "Key": "Name",
+                    "Value": "default-internet-gateway"
+                }
+            ]
+        }
+    ]
+}

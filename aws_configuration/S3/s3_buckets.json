@@ -1,0 +1,28 @@
+{
+    "Buckets": [
+        {
+            "Name": "codepipeline-us-east-1-459445715306",
+            "CreationDate": "2023-12-05T17:17:30+00:00"
+        },
+        {
+            "Name": "etl-project-data-processed",
+            "CreationDate": "2023-11-24T13:08:52+00:00"
+        },
+        {
+            "Name": "etl-project-data-raw",
+            "CreationDate": "2023-11-24T13:08:26+00:00"
+        },
+        {
+            "Name": "etl-project-ml-model",
+            "CreationDate": "2023-11-30T14:31:43+00:00"
+        },
+        {
+            "Name": "etl-project-uploads",
+            "CreationDate": "2023-11-24T13:46:24+00:00"
+        }
+    ],
+    "Owner": {
+        "DisplayName": "stevenberrisford",
+        "ID": "e8fbdf48bc31615454026f4678f648d61733d3e5fd18253331384764b6fb2a7d"
+    }
+}

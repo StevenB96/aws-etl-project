@@ -1,0 +1,109 @@
+{
+    "services": [
+        {
+            "serviceArn": "arn:aws:ecs:us-east-1:690469543125:service/etl-project-cluster/etl-project-service",
+            "serviceName": "etl-project-service",
+            "clusterArn": "arn:aws:ecs:us-east-1:690469543125:cluster/etl-project-cluster",
+            "loadBalancers": [
+                {
+                    "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:690469543125:targetgroup/etl-project-target-group/9bcfbe01bb66e16c",
+                    "containerName": "etl-project-container",
+                    "containerPort": 80
+                }
+            ],
+            "serviceRegistries": [],
+            "status": "ACTIVE",  
+            "desiredCount": 1,
+            "runningCount": 1,
+            "pendingCount": 0,
+            "capacityProviderStrategy": [
+                {
+                    "capacityProvider": "Infra-ECS-Cluster-etl-project-cluster-5584ebc1-EC2CapacityProvider-zk6NMnaHlu1V",
+                    "weight": 1,
+                    "base": 0
+                }
+            ],
+            "taskDefinition": "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:17",
+            "deploymentConfiguration": {
+                "deploymentCircuitBreaker": {
+                    "enable": true,
+                    "rollback": true
+                },
+                "maximumPercent": 200,
+                "minimumHealthyPercent": 100
+            },
+            "deployments": [
+                {
+                    "id": "ecs-svc/8740787338858220440",
+                    "status": "PRIMARY",
+                    "taskDefinition": "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:17",
+                    "desiredCount": 1,
+                    "pendingCount": 0,
+                    "runningCount": 1,
+                    "failedTasks": 0,
+                    "createdAt": "2023-12-20T16:30:06.820000+00:00",
+                    "updatedAt": "2023-12-20T16:33:27.381000+00:00",
+                    "capacityProviderStrategy": [
+                        {
+                            "capacityProvider": "Infra-ECS-Cluster-etl-project-cluster-5584ebc1-EC2CapacityProvider-zk6NMnaHlu1V",
+                            "weight": 1,
+                            "base": 0
+                        }
+                    ],
+                    "rolloutState": "COMPLETED",
+                    "rolloutStateReason": "ECS deployment ecs-svc/8740787338858220440 completed."
+                }
+            ],
+            "roleArn": "arn:aws:iam::690469543125:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS",
+            "events": [
+                {
+                    "id": "9e24c8bd-a2bd-4843-a58d-62a3a9974d10",
+                    "createdAt": "2023-12-20T16:33:27.389000+00:00",
+                    "message": "(service etl-project-service) has reached a steady state."
+                },
+                {
+                    "id": "071c0dfd-17a4-4ac1-a0fc-97b47aa67371",
+                    "createdAt": "2023-12-20T16:33:27.388000+00:00",
+                    "message": "(service etl-project-service) (deployment ecs-svc/8740787338858220440) deployment completed."
+                },
+                {
+                    "id": "491d1822-c9ce-4abd-bc7a-c95f3eaadce4",
+                    "createdAt": "2023-12-20T16:33:08.151000+00:00",
+                    "message": "(service etl-project-service) registered 1 targets in (target-group arn:aws:elasticloadbalancing:us-east-1:690469543125:targetgroup/etl-project-target-group/9bcfbe01bb66e16c)"
+                },
+                {
+                    "id": "c48c1f92-3166-4555-8def-cef1e614ca2e",
+                    "createdAt": "2023-12-20T16:32:32.005000+00:00",
+                    "message": "(service etl-project-service, taskSet ecs-svc/8740787338858220440) has started 1 tasks: (task 8b1edfcb7b6241fe9bc76d7cd49855a5)."
+                },
+                {
+                    "id": "31189fb6-9679-4d25-b13c-e73a473a712a",
+                    "createdAt": "2023-12-20T16:30:14.886000+00:00",
+                    "message": "(service etl-project-service) has started 1 tasks: (task 8b1edfcb7b6241fe9bc76d7cd49855a5)."
+                }
+            ],
+            "createdAt": "2023-12-20T16:30:06.820000+00:00",
+            "placementConstraints": [],
+            "placementStrategy": [
+                {
+                    "type": "spread",
+                    "field": "attribute:ecs.availability-zone"
+                },
+                {
+                    "type": "spread",
+                    "field": "instanceId"
+                }
+            ],
+            "healthCheckGracePeriodSeconds": 0,
+            "schedulingStrategy": "REPLICA",
+            "deploymentController": {
+                "type": "ECS"
+            },
+            "createdBy": "arn:aws:iam::690469543125:root",
+            "enableECSManagedTags": true,
+            "propagateTags": "NONE",
+            "enableExecuteCommand": false
+        }
+    ],
+    "failures": []
+}

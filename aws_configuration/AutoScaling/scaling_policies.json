@@ -1,0 +1,42 @@
+{
+    "ScalingPolicies": [
+        {
+            "AutoScalingGroupName": "Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF",
+            "PolicyName": "ECSManagedAutoScalingPolicy-9147c484-ecdb-4c3d-b010-7ef017c38649",
+            "PolicyARN": "arn:aws:autoscaling:us-east-1:690469543125:scalingPolicy:734c33a3-5dcd-436b-8232-b97398f127e8:autoScalingGroupName/Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF:policyName/ECSManagedAutoScalingPolicy-9147c484-ecdb-4c3d-b010-7ef017c38649",
+            "PolicyType": "TargetTrackingScaling",
+            "StepAdjustments": [],
+            "EstimatedInstanceWarmup": 300,
+            "Alarms": [
+                {
+                    "AlarmName": "TargetTracking-Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF-AlarmHigh-2bfe7bba-570f-463d-a99e-11b081391f1f",
+                    "AlarmARN": "arn:aws:cloudwatch:us-east-1:690469543125:alarm:TargetTracking-Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF-AlarmHigh-2bfe7bba-570f-463d-a99e-11b081391f1f"
+                },
+                {
+                    "AlarmName": "TargetTracking-Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF-AlarmLow-ed22ae3d-2803-4ccf-a95a-d59e5acf60d1",
+                    "AlarmARN": "arn:aws:cloudwatch:us-east-1:690469543125:alarm:TargetTracking-Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF-AlarmLow-ed22ae3d-2803-4ccf-a95a-d59e5acf60d1"
+                }
+            ],
+            "TargetTrackingConfiguration": {
+                "CustomizedMetricSpecification": {
+                    "MetricName": "CapacityProviderReservation",
+                    "Namespace": "AWS/ECS/ManagedScaling",
+                    "Dimensions": [
+                        {
+                            "Name": "CapacityProviderName",
+                            "Value": "Infra-ECS-Cluster-etl-project-cluster-5584ebc1-EC2CapacityProvider-zk6NMnaHlu1V"
+                        },
+                        {
+                            "Name": "ClusterName",
+                            "Value": "etl-project-cluster"
+                        }
+                    ],
+                    "Statistic": "Average"
+                },
+                "TargetValue": 100.0,
+                "DisableScaleIn": false
+            },
+            "Enabled": true
+        }
+    ]
+}

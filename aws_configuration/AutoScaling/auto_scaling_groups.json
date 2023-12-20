@@ -1,0 +1,89 @@
+{
+    "AutoScalingGroups": [
+        {
+            "AutoScalingGroupName": "Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF",
+            "AutoScalingGroupARN": "arn:aws:autoscaling:us-east-1:690469543125:autoScalingGroup:09a3011c-ffbf-4490-bbdf-511399589d58:autoScalingGroupName/Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF",
+            "MixedInstancesPolicy": {
+                "LaunchTemplate": {
+                    "LaunchTemplateSpecification": {
+                        "LaunchTemplateId": "lt-005be01b9674ba6cf",
+                        "LaunchTemplateName": "ECSLaunchTemplate_AmAQnARjwFvZ",
+                        "Version": "1"
+                    },
+                    "Overrides": [
+                        {
+                            "InstanceType": "t2.micro"
+                        }
+                    ]
+                },
+                "InstancesDistribution": {
+                    "OnDemandAllocationStrategy": "prioritized",
+                    "OnDemandBaseCapacity": 0,
+                    "OnDemandPercentageAboveBaseCapacity": 0,
+                    "SpotAllocationStrategy": "price-capacity-optimized"
+                }
+            },
+            "MinSize": 0,
+            "MaxSize": 2,
+            "DesiredCapacity": 0,
+            "DefaultCooldown": 300,
+            "AvailabilityZones": [
+                "us-east-1a",
+                "us-east-1b",
+                "us-east-1c"
+            ],
+            "LoadBalancerNames": [],
+            "TargetGroupARNs": [],
+            "HealthCheckType": "EC2",
+            "HealthCheckGracePeriod": 0,
+            "Instances": [],
+            "CreatedTime": "2023-12-19T18:11:21.508000+00:00",
+            "SuspendedProcesses": [],
+            "VPCZoneIdentifier": "subnet-02b7a2d2ecab5339b,subnet-0fe6a84c44c822ba9,subnet-07e8423f759dc7984",
+            "EnabledMetrics": [],
+            "Tags": [
+                {
+                    "ResourceId": "Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "AmazonECSManaged",
+                    "Value": "",
+                    "PropagateAtLaunch": true
+                },
+                {
+                    "ResourceId": "Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "Name",
+                    "Value": "ECS Instance - etl-project-cluster",
+                    "PropagateAtLaunch": true
+                },
+                {
+                    "ResourceId": "Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "aws:cloudformation:logical-id",
+                    "Value": "ECSAutoScalingGroup",
+                    "PropagateAtLaunch": true
+                },
+                {
+                    "ResourceId": "Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "aws:cloudformation:stack-id",
+                    "Value": "arn:aws:cloudformation:us-east-1:690469543125:stack/Infra-ECS-Cluster-etl-project-cluster-5584ebc1/f68c9fa0-9e99-11ee-af0f-12a3e12149f9",
+                    "PropagateAtLaunch": true
+                },
+                {
+                    "ResourceId": "Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF",
+                    "ResourceType": "auto-scaling-group",
+                    "Key": "aws:cloudformation:stack-name",
+                    "Value": "Infra-ECS-Cluster-etl-project-cluster-5584ebc1",
+                    "PropagateAtLaunch": true
+                }
+            ],
+            "TerminationPolicies": [
+                "Default"
+            ],
+            "NewInstancesProtectedFromScaleIn": false,
+            "ServiceLinkedRoleARN": "arn:aws:iam::690469543125:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling",
+            "TrafficSources": []
+        }
+    ]
+}

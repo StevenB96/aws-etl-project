@@ -1,0 +1,14 @@
+{
+    "HostedZones": [
+        {
+            "Id": "/hostedzone/Z1011980MYZVQCJADAYC",
+            "Name": "stevenberrisford.com.",
+            "CallerReference": "RISWorkflow-RD:5362ac65-8a1b-41e8-9dd7-af8b0ea04592",
+            "Config": {
+                "Comment": "HostedZone created by Route53 Registrar",
+                "PrivateZone": false
+            },
+            "ResourceRecordSetCount": 4
+        }
+    ]
+}

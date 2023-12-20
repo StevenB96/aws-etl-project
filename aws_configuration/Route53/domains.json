@@ -1,0 +1,10 @@
+{
+    "Domains": [
+        {
+            "DomainName": "stevenberrisford.com",
+            "AutoRenew": true,
+            "TransferLock": false,
+            "Expiry": "2024-11-26T12:02:14+00:00"
+        }
+    ]
+}

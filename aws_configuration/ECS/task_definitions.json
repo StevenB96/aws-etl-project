@@ -1,0 +1,19 @@
+{
+    "taskDefinitionArns": [
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:3",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:4",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:5",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:6",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:7",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:8",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:9",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:10",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:11",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:12",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:13",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:14",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:15",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:16",
+        "arn:aws:ecs:us-east-1:690469543125:task-definition/etl-project-task-definition:17"
+    ]
+}

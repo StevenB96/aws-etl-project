@@ -1,0 +1,5 @@
+{
+    "clusterArns": [
+        "arn:aws:ecs:us-east-1:690469543125:cluster/etl-project-cluster"
+    ]
+}

@@ -1,0 +1,15 @@
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Executing pre-build commands"
+
+  build:
+    commands:
+      - echo "Executing build commands"
+      - ./push_to_ecr.sh
+
+post_build:
+  commands:
+    - echo "Executing post-build commands"
