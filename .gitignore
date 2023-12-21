@@ -63,6 +63,7 @@ dist/
 
 # Project folders
 venv/
+# datasets_backup/
 raw_datasets/
 uploads/
 aws_configuration/
