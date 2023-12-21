@@ -8,15 +8,18 @@ phases:
       - COMMIT=$(git rev-parse HEAD)
       - TAG=$(git describe --exact-match --tags $COMMIT 2>/dev/null || echo "none")
       - if [ "$TAG" == "none" ]; then
-          echo "No tag found. Exiting build.";
-          exit 1;
+        echo "No tag found. Exiting build.";
+        exit 1;
         fi
+
+  build:
+    commands:
+      # Create env.py file
       - echo "# AWS Configuration" > env.py
       - echo "AWS_ACCESS_KEY_ID=\"$AWS_ACCESS_KEY_ID\"" >> env.py
       - echo "AWS_SECRET_ACCESS_KEY=\"$AWS_SECRET_ACCESS_KEY\"" >> env.py
 
-  build:
-    commands:
+      # Deploy ECR image
       - echo "Executing build commands"
       - chmod +x ./push_to_ecr.sh
       - ./push_to_ecr.sh --container-service "docker"
