@@ -82,6 +82,26 @@
             "MaxSessionDuration": 3600
         },
         {
+            "Path": "/aws-service-role/ecs.application-autoscaling.amazonaws.com/",
+            "RoleName": "AWSServiceRoleForApplicationAutoScaling_ECSService",
+            "RoleId": "AROA2BQZRDTKYQUFAABHT",
+            "Arn": "arn:aws:iam::690469543125:role/aws-service-role/ecs.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_ECSService",
+            "CreateDate": "2023-12-20T16:33:30+00:00",
+            "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": "ecs.application-autoscaling.amazonaws.com"
+                        },
+                        "Action": "sts:AssumeRole"
+                    }
+                ]
+            },
+            "MaxSessionDuration": 3600
+        },
+        {
             "Path": "/aws-service-role/autoscaling.amazonaws.com/",
             "RoleName": "AWSServiceRoleForAutoScaling",
             "RoleId": "AROA2BQZRDTKTQMZWLG23",
