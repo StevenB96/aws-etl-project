@@ -68,5 +68,5 @@ raw_datasets/
 uploads/
 aws_configuration/
 
-# Pem files
+# Pem files.
 *.pem
