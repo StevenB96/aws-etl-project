@@ -75,10 +75,6 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# Create imagedefinitions.json using variables
-printf '[{"name":"%s","imageUri":"%s"}]' "$ECR_REPOSITORY" "$ECR_IMAGE_URI" > imagedefinitions.json
-printf '[{"name":"%s","imageUri":"%s"}]' "$ECR_REPOSITORY" "$ECR_IMAGE_URI"
-
 # Delete the local container image
 echo "Deleting the local container image..."
 $CONTAINER_SERVICE rmi aws_etl_project_image:latest
