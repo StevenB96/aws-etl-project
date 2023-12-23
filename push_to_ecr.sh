@@ -59,15 +59,15 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Set image uri
-ECR_IMAGE_URI = $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+export ECR_IMAGE_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest"
 
 # Tag your local container image with the ECR repository URI
 echo "Tagging the local image..."
-$CONTAINER_SERVICE tag aws_etl_project_image:latest $ECR_IMAGE_URI
+$CONTAINER_SERVICE tag aws_etl_project_image:latest "$ECR_IMAGE_URI"
 
 # Push the image to ECR
 echo "Pushing the image to ECR..."
-$CONTAINER_SERVICE push $ECR_IMAGE_URI
+$CONTAINER_SERVICE push "$ECR_IMAGE_URI"
 
 # Check if the push was successful
 if [[ $? -ne 0 ]]; then

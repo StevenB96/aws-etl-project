@@ -31,3 +31,6 @@ phases:
 post_build:
   commands:
     - echo "Executing post-build commands"
+
+artifacts:
+  files: imagedefinitions.json
