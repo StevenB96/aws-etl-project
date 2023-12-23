@@ -1,5 +1,10 @@
 version: 0.2
 
+env:
+  secrets-manager:
+    ETL_PROJECT_ACCESS_KEY_ID: "arn:aws:secretsmanager:us-east-1:690469543125:secret:etl-project-access-key-id-eUT3Wr"
+    ETL_PROJECT_SECRET_ACCESS_KEY: "arn:aws:secretsmanager:us-east-1:690469543125:secret:etl-project-secret-access-key-km3iyd"
+
 phases:
   pre_build:
     commands:
@@ -17,8 +22,8 @@ phases:
     commands:
       - echo "Build commands"
       - echo "# AWS Configuration" > env.py
-      - echo "AWS_ACCESS_KEY_ID=\"$AWS_ACCESS_KEY_ID\"" >> env.py
-      - echo "AWS_SECRET_ACCESS_KEY=\"$AWS_SECRET_ACCESS_KEY\"" >> env.py
+      - echo "AWS_ACCESS_KEY_ID=\"$ETL_PROJECT_ACCESS_KEY_ID\"" >> env.py
+      - echo "AWS_SECRET_ACCESS_KEY=\"$ETL_PROJECT_SECRET_ACCESS_KEY\"" >> env.py
       - echo "Executing build commands"
       - chmod +x ./push_to_ecr.sh
       - ./push_to_ecr.sh --container-service "docker"
