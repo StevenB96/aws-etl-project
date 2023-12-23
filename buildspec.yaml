@@ -12,16 +12,8 @@ phases:
       - set -e
 
       # Extract raw values
-      - ETL_PROJECT_ACCESS_KEY_ID = $(echo $ETL_PROJECT_ACCESS_KEY_ID | sed -n 's/.*"ETL_PROJECT_ACCESS_KEY_ID": "\(.*\)".*/\1/p')
-      - ETL_PROJECT_SECRET_ACCESS_KEY = $(echo $ETL_PROJECT_SECRET_ACCESS_KEY | sed -n 's/.*"ETL_PROJECT_SECRET_ACCESS_KEY": "\(.*\)".*/\1/p')
-      
-      # - COMMIT=$(git rev-parse HEAD)
-      # - TAG=$(git describe --exact-match --tags $COMMIT 2>/dev/null || echo "none")
-
-      # - if [ "$TAG" == "none" ]; then
-      #     echo "No tag found. Exiting build.";
-      #     exit 1;
-      #   fi
+      - ETL_PROJECT_ACCESS_KEY_ID=$(echo $ETL_PROJECT_ACCESS_KEY_ID | sed -n 's/.*"ETL_PROJECT_ACCESS_KEY_ID": "\(.*\)".*/\1/p')
+      - ETL_PROJECT_SECRET_ACCESS_KEY=$(echo $ETL_PROJECT_SECRET_ACCESS_KEY | sed -n 's/.*"ETL_PROJECT_SECRET_ACCESS_KEY": "\(.*\)".*/\1/p')
 
   build:
     commands:
