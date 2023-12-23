@@ -4,14 +4,14 @@ phases:
   pre_build:
     commands:
       - echo "Executing pre-build commands"
-      - set -e  # Exit on error
-      - COMMIT=$(git rev-parse HEAD)
-      - TAG=$(git describe --exact-match --tags $COMMIT 2>/dev/null || echo "none")
+      - set -e
+      # - COMMIT=$(git rev-parse HEAD)
+      # - TAG=$(git describe --exact-match --tags $COMMIT 2>/dev/null || echo "none")
 
-      - if [ "$TAG" == "none" ]; then
-          echo "No tag found. Exiting build.";
-          exit 1;
-        fi
+      # - if [ "$TAG" == "none" ]; then
+      #     echo "No tag found. Exiting build.";
+      #     exit 1;
+      #   fi
 
   build:
     commands:
