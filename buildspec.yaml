@@ -8,7 +8,8 @@ env:
 phases:
   pre_build:
     commands:
-      - echo "Executing pre-build commands"
+      # Adjust the environment
+      - apt-get update -y && apt-get install -y jq
       - set -e
 
       # Extract raw values
@@ -25,12 +26,15 @@ phases:
 
   build:
     commands:
-      - echo "Build commands"
+      # Write env file
       - echo "# AWS Configuration" > env.py
       - echo "AWS_ACCESS_KEY_ID=\"$ETL_PROJECT_ACCESS_KEY_ID\"" >> env.py
       - echo "AWS_SECRET_ACCESS_KEY=\"$ETL_PROJECT_SECRET_ACCESS_KEY\"" >> env.py
-      - echo "Executing build commands"
+      
+      # Change file permissions
       - chmod +x ./push_to_ecr.sh
+
+      # Build and push docker image
       - ./push_to_ecr.sh --container-service "docker"
 
 post_build:
