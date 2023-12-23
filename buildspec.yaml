@@ -9,7 +9,7 @@ phases:
   pre_build:
     commands:
       # Adjust the environment
-      - apt-get update -y && apt-get install -y jq
+      - yum install -y jq
       - set -e
 
       # Extract raw values
