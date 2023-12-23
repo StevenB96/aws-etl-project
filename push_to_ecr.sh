@@ -58,13 +58,16 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
+# Set image uri
+ECR_IMAGE_URI = $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+
 # Tag your local container image with the ECR repository URI
 echo "Tagging the local image..."
-$CONTAINER_SERVICE tag aws_etl_project_image:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+$CONTAINER_SERVICE tag aws_etl_project_image:latest ECR_IMAGE_URI
 
 # Push the image to ECR
 echo "Pushing the image to ECR..."
-$CONTAINER_SERVICE push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
+$CONTAINER_SERVICE push ECR_IMAGE_URI
 
 # Check if the push was successful
 if [[ $? -ne 0 ]]; then
@@ -72,6 +75,9 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
+# Create imagedefinitions.json using variables
+printf '[{"name":"%s","imageUri":"%s"}]' "$ECR_REPOSITORY" "$ECR_IMAGE_URI" > imagedefinitions.json
+echo '[{"name":"%s","imageUri":"%s"}]' "$ECR_REPOSITORY" "$ECR_IMAGE_URI"
 # Delete the local container image
 echo "Deleting the local container image..."
 $CONTAINER_SERVICE rmi aws_etl_project_image:latest
