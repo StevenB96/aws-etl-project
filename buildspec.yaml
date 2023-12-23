@@ -4,24 +4,24 @@ phases:
   pre_build:
     commands:
       - echo "Executing pre-build commands"
-      # - set -e  # Exit on error
-      # - COMMIT=$(git rev-parse HEAD)
-      # - TAG=$(git describe --exact-match --tags $COMMIT 2>/dev/null || echo "none")
+      - set -e  # Exit on error
+      - COMMIT=$(git rev-parse HEAD)
+      - TAG=$(git describe --exact-match --tags $COMMIT 2>/dev/null || echo "none")
 
-      # - if [ "$TAG" == "none" ]; then
-      #     echo "No tag found. Exiting build.";
-      #     exit 1;
-      #   fi
+      - if [ "$TAG" == "none" ]; then
+          echo "No tag found. Exiting build.";
+          exit 1;
+        fi
 
   build:
     commands:
       - echo "Build commands"
-      # - echo "# AWS Configuration" > env.py
-      # - echo "AWS_ACCESS_KEY_ID=\"$AWS_ACCESS_KEY_ID\"" >> env.py
-      # - echo "AWS_SECRET_ACCESS_KEY=\"$AWS_SECRET_ACCESS_KEY\"" >> env.py
-      # - echo "Executing build commands"
-      # - chmod +x ./push_to_ecr.sh
-      # - ./push_to_ecr.sh --container-service "docker"
+      - echo "# AWS Configuration" > env.py
+      - echo "AWS_ACCESS_KEY_ID=\"$AWS_ACCESS_KEY_ID\"" >> env.py
+      - echo "AWS_SECRET_ACCESS_KEY=\"$AWS_SECRET_ACCESS_KEY\"" >> env.py
+      - echo "Executing build commands"
+      - chmod +x ./push_to_ecr.sh
+      - ./push_to_ecr.sh --container-service "docker"
 
 post_build:
   commands:
