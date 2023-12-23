@@ -1,0 +1,7 @@
+version: 0.0
+resources:
+  - etl-project-task-definition:
+      type: ECS
+      properties:
+        taskDefinition: etl-project-task-definition:latest
+        taskCount: 1
