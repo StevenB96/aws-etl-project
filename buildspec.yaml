@@ -10,6 +10,8 @@ phases:
     commands:
       - echo "Executing pre-build commands"
       - set -e
+      - echo $(echo $ETL_PROJECT_ACCESS_KEY_ID | jq -r '.ETL_PROJECT_ACCESS_KEY_ID')
+      - echo $(echo $ETL_PROJECT_SECRET_ACCESS_KEY | jq -r '.ETL_PROJECT_SECRET_ACCESS_KEY')
       # - COMMIT=$(git rev-parse HEAD)
       # - TAG=$(git describe --exact-match --tags $COMMIT 2>/dev/null || echo "none")
 
@@ -24,8 +26,6 @@ phases:
       - echo "# AWS Configuration" > env.py
       - echo "AWS_ACCESS_KEY_ID=\"$ETL_PROJECT_ACCESS_KEY_ID\"" >> env.py
       - echo "AWS_SECRET_ACCESS_KEY=\"$ETL_PROJECT_SECRET_ACCESS_KEY\"" >> env.py
-      - echo $ETL_PROJECT_ACCESS_KEY_ID
-      - echo $ETL_PROJECT_SECRET_ACCESS_KEY
       - echo "Executing build commands"
       - chmod +x ./push_to_ecr.sh
       - ./push_to_ecr.sh --container-service "docker"
