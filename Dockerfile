@@ -23,4 +23,4 @@ ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
 # Use Gunicorn to run the application
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "--timeout", "300", "--log-level", "debug", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]
