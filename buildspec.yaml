@@ -1,5 +1,4 @@
 version: 0.2
-image: ubuntu/20.04
 
 env:
   secrets-manager:
