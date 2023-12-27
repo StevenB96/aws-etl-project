@@ -88,4 +88,4 @@ echo "Pruning unused images..."
 $CONTAINER_SERVICE system prune --all --force
 
 # Image successfully pushed
-echo "Image successfully pushed to ECR."
+echo "Image successfully pushed to ECR"
