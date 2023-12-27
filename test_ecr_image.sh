@@ -35,6 +35,10 @@ AWS_ACCOUNT_ID="690469543125"
 ECS_CONTAINER_NAME="etl-project-container"
 ECR_REPOSITORY="etl-project-container-repository"
 
+# Set AWS credentials in the environment
+export "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID"
+export "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY"
+
 # Authenticate with ECR
 echo "Authenticating with ECR..."
 AWS_ECR_PASSWORD=$(aws ecr get-login-password --region $AWS_REGION)
