@@ -22,5 +22,5 @@ EXPOSE 80
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
-# Use Gunicorn to run the application
-CMD ["venv/bin/gunicorn", "--bind", "0.0.0.0:80", "app:app"]
+# Activate virtual environment and use Gunicorn to run the application
+CMD ["/bin/bash", "-c", "source venv/bin/activate && gunicorn --bind 0.0.0.0:80 app:app"]
