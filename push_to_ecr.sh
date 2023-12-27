@@ -37,7 +37,7 @@ ECR_REPOSITORY="etl-project-container-repository"
 
 # Build the container image using the specified service
 echo "Building the container image using $CONTAINER_SERVICE..."
-$CONTAINER_SERVICE build -t aws_etl_project_image -f ./Dockerfile --platform linux/amd64 .
+$CONTAINER_SERVICE build -t aws_etl_project_image --platform linux/amd64 -f ./Dockerfile .
 
 # Check if the build was successful
 if [[ $? -ne 0 ]]; then
