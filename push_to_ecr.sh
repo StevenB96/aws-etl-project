@@ -82,4 +82,9 @@ printf '[{"name":"%s","imageUri":"%s"}]' "$ECR_REPOSITORY" "$ECR_IMAGE_URI" > im
 echo "Deleting the local container image..."
 $CONTAINER_SERVICE rmi aws_etl_project_image:latest
 
+# Pruning unused images
+echo "Pruning unused images..."
+podman system prune --all --force
+
+
 echo "Image successfully pushed to ECR."
