@@ -32,6 +32,7 @@ fi
 # AWS Configuration
 AWS_REGION="us-east-1"
 AWS_ACCOUNT_ID="690469543125"
+ECS_CONTAINER_NAME="etl-project-container"
 ECR_REPOSITORY="etl-project-container-repository"
 
 # Build the container image using the specified service
@@ -76,7 +77,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Create imagedefinitions.json using variables
-printf '[{"name":"%s","imageUri":"%s"}]' "$ECR_REPOSITORY" "$ECR_IMAGE_URI" > imagedefinitions.json
+printf '[{"name":"%s","imageUri":"%s"}]' "$ECS_CONTAINER_NAME" "$ECR_IMAGE_URI" > imagedefinitions.json
 
 # Delete the local container image
 echo "Deleting the local container image..."
