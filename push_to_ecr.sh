@@ -85,7 +85,7 @@ $CONTAINER_SERVICE rmi aws_etl_project_image:latest
 
 # Pruning unused images
 echo "Pruning unused images..."
-podman system prune --all --force
+$CONTAINER_SERVICE system prune --all --force
 
 # Image successfully pushed
 echo "Image successfully pushed to ECR."
