@@ -9,7 +9,7 @@ COPY . /app
 
 # Create and activate a virtual environment
 RUN python -m venv venv
-RUN /bin/bash -c "source venv/bin/activate"
+RUN /bin/sh -c "source venv/bin/activate"
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt \
@@ -23,4 +23,4 @@ ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
 # Activate virtual environment and use Gunicorn to run the application
-CMD ["/bin/bash", "-c", "source venv/bin/activate && gunicorn --bind 0.0.0.0:80 app:app"]
+CMD ["/bin/sh", "-c", "source venv/bin/activate && gunicorn --bind 0.0.0.0:80 app:app"]
