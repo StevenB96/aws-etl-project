@@ -3,6 +3,9 @@ FROM python:3.11-alpine
 
 # Install additional packages
 RUN apk --no-cache add \
+    build-base \
+    python3-dev \
+    musl-dev \
     sudo \
     net-tools \
     lsof \
