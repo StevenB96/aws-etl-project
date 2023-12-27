@@ -2,7 +2,7 @@
 FROM python:3.11-alpine
 
 # Install system dependencies
-RUN apk --no-cache add sudo net-tools lsof htop strace tcpdump iproute2 curl vim \
+RUN apk --no-cache add sudo net-tools lsof htop strace tcpdump iproute2 curl vim gfortran \
     && rm -rf /var/cache/apk/*
 
 # Set the working directory in the container
