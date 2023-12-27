@@ -1,30 +1,22 @@
-# Use an official Python runtime as a parent image
-FROM python:3.11-slim
-
-RUN apt-get update && apt-get install -y \
-    sudo \
-    net-tools \
-    lsof \
-    htop \
-    strace \
-    tcpdump \
-    iproute2 \
-    curl \
-    vim \
-    && rm -rf /var/lib/apt/lists/*
-
+# Use a smaller base image
+FROM python:3.11-alpine
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the current directory contents into the container at /app
-COPY . /app
-
-# Install any needed packages specified in requirements.txt
-RUN pip install -r requirements.txt
+# Copy only the requirements file, and install dependencies
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Install Gunicorn
 RUN pip install gunicorn
+
+# Copy the rest of the application
+COPY . /app/
+
+# Remove unnecessary packages and clean up
+RUN apk del .build-deps \
+    && rm -rf /var/cache/apk/*
 
 # Make port 80 available to the world outside this container
 EXPOSE 80
