@@ -1,7 +1,8 @@
 # Use an official Python runtime as a parent image
 FROM python:3.11-alpine
 
-RUN apt-get update && apt-get install -y \
+# Install additional packages
+RUN apk --no-cache add \
     sudo \
     net-tools \
     lsof \
@@ -10,9 +11,7 @@ RUN apt-get update && apt-get install -y \
     tcpdump \
     iproute2 \
     curl \
-    vim \
-    && rm -rf /var/lib/apt/lists/*
-
+    vim
 
 # Set the working directory in the container
 WORKDIR /app
