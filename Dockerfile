@@ -1,15 +1,11 @@
 # Use an official Python runtime as a parent image
-FROM python:3.11-slim
+FROM arm64v8/python:3.11-slim
 
 # Set the working directory in the container
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
 COPY . /app
-
-# Create and activate a virtual environment
-RUN python -m venv venv
-RUN /bin/sh -c "source venv/bin/activate"
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt \
@@ -23,4 +19,4 @@ ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
 # Activate virtual environment and use Gunicorn to run the application
-CMD ["/bin/sh", "-c", "source venv/bin/activate && gunicorn --bind 0.0.0.0:80 app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:80", "app:app"]
