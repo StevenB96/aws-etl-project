@@ -1,9 +1,17 @@
-# Use a smaller base image
-FROM python:3.11-alpine
+# Use an official Python runtime as a parent image
+FROM python:3.11-slim
 
-# Install system dependencies
-RUN apk --no-cache add sudo net-tools lsof htop strace tcpdump iproute2 curl vim \
-    build-base libffi-dev openssl-dev && rm -rf /var/cache/apk/*
+RUN apt-get update && apt-get install -y \
+    sudo \
+    net-tools \
+    lsof \
+    htop \
+    strace \
+    tcpdump \
+    iproute2 \
+    curl \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory in the container
 WORKDIR /app
@@ -11,11 +19,8 @@ WORKDIR /app
 # Copy the current directory contents into the container at /app
 COPY . /app
 
-# Create a virtual environment and install dependencies
-RUN python -m venv venv \
-    && source venv/bin/activate \
-    && pip install --no-cache-dir -r requirements.txt \
-    && deactivate
+# Install any needed packages specified in requirements.txt
+RUN pip install -r requirements.txt
 
 # Install Gunicorn
 RUN pip install gunicorn
