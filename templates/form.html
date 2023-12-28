@@ -91,16 +91,16 @@
             <h1>Movie Details</h1>
             <p>Fill in the form to receive a profit prediction for your movie.</p>
             <form method="POST" action="/predict" id="predictionForm" name="predictionForm">
-                <label for="lead">Lead:</label>
+                <label for="lead">Lead</label>
                 <select id="lead" name="lead" class="select2" required></select>
 
-                <label for="director">Director:</label>
+                <label for="director">Director</label>
                 <select id="director" name="director" class="select2" required></select>
 
-                <label for="genre">Genre:</label>
+                <label for="genre">Genre</label>
                 <select id="genre" name="genre" class="select2" required></select>
 
-                <label for="budget">Budget:</label>
+                <label for="budget">Budget</label>
                 <input type="range" class="custom-range" id="budget" name="budget" min="10000000" max="100000000"
                     required>
                 <span id="budget-value"></span>
@@ -115,7 +115,7 @@
             </button>
             <br><br>
             <form action="/upload" method="post" id="csvForm" name="csvForm" enctype="multipart/form-data">
-                <label for="csv">Select your .csv path:</label>
+                <label for="csv">Select your .csv path</label>
                 <input type="file" id="csv" name="csv" accept=".csv">
                 <input type="submit" value="Upload">
             </form>
