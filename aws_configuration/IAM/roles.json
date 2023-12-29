@@ -43,9 +43,9 @@
         {
             "Path": "/service-role/",
             "RoleName": "AWSCodePipelineServiceRole-us-east-1-etl-project-pipeline",
-            "RoleId": "AROA2BQZRDTK2GVQ435Y3",
+            "RoleId": "AROA2BQZRDTKTGA2V462R",
             "Arn": "arn:aws:iam::690469543125:role/service-role/AWSCodePipelineServiceRole-us-east-1-etl-project-pipeline",
-            "CreateDate": "2023-12-05T17:17:28+00:00",
+            "CreateDate": "2023-12-23T15:51:34+00:00",
             "AssumeRolePolicyDocument": {
                 "Version": "2012-10-17",
                 "Statement": [
@@ -230,9 +230,9 @@
         {
             "Path": "/service-role/",
             "RoleName": "codebuild-etl-project-build-project-service-role",
-            "RoleId": "AROA2BQZRDTKTG7AOHHBF",
+            "RoleId": "AROA2BQZRDTKTIHDJ4ZEM",
             "Arn": "arn:aws:iam::690469543125:role/service-role/codebuild-etl-project-build-project-service-role",
-            "CreateDate": "2023-12-05T16:05:39+00:00",
+            "CreateDate": "2023-12-23T15:42:58+00:00",
             "AssumeRolePolicyDocument": {
                 "Version": "2012-10-17",
                 "Statement": [
@@ -249,10 +249,10 @@
         },
         {
             "Path": "/",
-            "RoleName": "CodeDeployEC2Role",
-            "RoleId": "AROA2BQZRDTKYGAO7P7ZI",
-            "Arn": "arn:aws:iam::690469543125:role/CodeDeployEC2Role",
-            "CreateDate": "2023-11-29T22:30:29+00:00",
+            "RoleName": "codedeploy-etl-project-application-service-role",
+            "RoleId": "AROA2BQZRDTKYGIZANLQM",
+            "Arn": "arn:aws:iam::690469543125:role/codedeploy-etl-project-application-service-role",
+            "CreateDate": "2023-12-23T20:52:59+00:00",
             "AssumeRolePolicyDocument": {
                 "Version": "2012-10-17",
                 "Statement": [
@@ -266,7 +266,7 @@
                     }
                 ]
             },
-            "Description": "Allows CodeDeploy to call AWS services such as Auto Scaling on your behalf.",
+            "Description": "Allows CodeDeploy to read S3 objects, invoke Lambda functions, publish to SNS topics, and update ECS services on your behalf.",
             "MaxSessionDuration": 3600
         },
         {
