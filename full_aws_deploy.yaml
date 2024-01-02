@@ -3,7 +3,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Parameters:
   ProjectName:
     Type: String
-    Default: "cloud-formation-etl-project"
+    Default: "cloudform-etl-proj"
   Region:
     Type: String
     Default: "us-east-1"
@@ -46,8 +46,6 @@ Resources:
             Action: "sts:AssumeRole"
       Description: "Allows ELB to call AWS services on your behalf."
       MaxSessionDuration: 3600
-      ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AWSElasticLoadBalancingServiceRolePolicy"
 
   DhcpOptions:
     Type: "AWS::EC2::DHCPOptions"
@@ -59,7 +57,6 @@ Resources:
     Type: "AWS::EC2::VPC"
     Properties:
       CidrBlock: "172.31.0.0/16"
-      DhcpOptionsId: !Ref DhcpOptions
       Tags:
         - Key: "Name"
           Value: !Sub "${ProjectName}-vpc"
@@ -76,35 +73,13 @@ Resources:
     Properties:
       Tags:
         - Key: "Name"
-          Value: !Sub "${ProjectName}-internet-gateway"
+          Value: !Sub "${ProjectName}-int-gw"
 
   AttachGateway:
     Type: "AWS::EC2::VPCGatewayAttachment"
     Properties:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
-
-  RouteTable:
-    Type: "AWS::EC2::RouteTable"
-    Properties:
-      VpcId: !Ref VPC
-      Tags:
-        - Key: "Name"
-          Value: !Sub "${ProjectName}-route-table"
-
-  Route:
-    Type: "AWS::EC2::Route"
-    Properties:
-      RouteTableId: !Ref RouteTable
-      DestinationCidrBlock: "0.0.0.0/0"
-      GatewayId: !Ref InternetGateway
-
-  LocalRoute:
-    Type: "AWS::EC2::Route"
-    Properties:
-      RouteTableId: !Ref RouteTable
-      DestinationCidrBlock: "172.31.0.0/16"
-      GatewayId: "local"
 
   SubnetA:
     Type: "AWS::EC2::Subnet"
@@ -115,7 +90,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: "Name"
-          Value: !Sub "${ProjectName}-subnet-a"
+          Value: !Sub "${ProjectName}-subnt-a"
 
   SubnetB:
     Type: "AWS::EC2::Subnet"
@@ -126,7 +101,7 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: "Name"
-          Value: !Sub "${ProjectName}-subnet-b"
+          Value: !Sub "${ProjectName}-subnt-b"
 
   SubnetC:
     Type: "AWS::EC2::Subnet"
@@ -137,14 +112,47 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: "Name"
-          Value: !Sub "${ProjectName}-subnet-c"
+          Value: !Sub "${ProjectName}-subnt-c"
+
+  RouteTable:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: "Name"
+          Value: !Sub "${ProjectName}-rt-tbl"
+
+  SubnetRouteTableAssociationA:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref SubnetA
+      RouteTableId: !Ref RouteTable
+
+  SubnetRouteTableAssociationB:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref SubnetB
+      RouteTableId: !Ref RouteTable
+
+  SubnetRouteTableAssociationC:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref SubnetC
+      RouteTableId: !Ref RouteTable
+
+  Route:
+    Type: "AWS::EC2::Route"
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: "0.0.0.0/0"
+      GatewayId: !Ref InternetGateway
 
   SecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
-      GroupName: !Sub "${ProjectName}-security-group"
+      GroupName: !Sub "${ProjectName}-sec-grp"
       VpcId: !Ref VPC
-      Description: "Security group for the project"
+      GroupDescription: "Security group for the project"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -167,12 +175,12 @@ Resources:
           CidrIp: "0.0.0.0/0"
       Tags:
         - Key: "Name"
-          Value: !Sub "${ProjectName}-security-group"
+          Value: !Sub "${ProjectName}-sec-grp"
 
   TargetGroup:
     Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties:
-      Name: !Sub "${ProjectName}-target-group"
+      Name: !Sub "${ProjectName}-tgt-grp"
       Protocol: "HTTP"
       Port: 80
       VpcId: !Ref VPC
@@ -190,7 +198,7 @@ Resources:
   LoadBalancer:
     Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
     Properties:
-      Name: !Sub "${ProjectName}-load-balancer"
+      Name: !Sub "${ProjectName}-ld-blncr"
       Subnets:
         - !Ref SubnetA
         - !Ref SubnetB
@@ -203,17 +211,21 @@ Resources:
         - !Ref SecurityGroup
       Tags:
         - Key: "Name"
-          Value: !Sub "${ProjectName}-load-balancer"
+          Value: !Sub "${ProjectName}-ld-blncr"
       Role: !GetAtt ElasticLoadBalancingRole.Arn
-      Listeners:
-        - Protocol: HTTP
-          Port: 80
-          DefaultActions:
-            - Type: "forward"
-              TargetGroupArn: !Ref TargetGroup
       DefaultActions:
         - Type: "forward"
           TargetGroupArn: !Ref TargetGroup
+
+  Listeners:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        - Type: "forward"
+          TargetGroupArn: !Ref TargetGroup
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
 
   NetworkACL:
     Type: "AWS::EC2::NetworkAcl"
@@ -221,7 +233,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: "Name"
-          Value: !Sub "${ProjectName}-network-acl"
+          Value: !Sub "${ProjectName}-net-acl"
 
   NetworkACLEntry1:
     Type: "AWS::EC2::NetworkAclEntry"
@@ -232,20 +244,8 @@ Resources:
       RuleAction: "allow"
       Egress: true
       CidrBlock: "0.0.0.0/0"
-      Description: "Allow all outbound traffic"
 
   NetworkACLEntry2:
-    Type: "AWS::EC2::NetworkAclEntry"
-    Properties:
-      NetworkAclId: !Ref NetworkACL
-      RuleNumber: 32767
-      Protocol: "-1"
-      RuleAction: "deny"
-      Egress: true
-      CidrBlock: "0.0.0.0/0"
-      Description: "Deny all outbound traffic"
-
-  NetworkACLEntry3:
     Type: "AWS::EC2::NetworkAclEntry"
     Properties:
       NetworkAclId: !Ref NetworkACL
@@ -254,18 +254,6 @@ Resources:
       RuleAction: "allow"
       Egress: false
       CidrBlock: "0.0.0.0/0"
-      Description: "Allow all inbound traffic"
-
-  NetworkACLEntry4:
-    Type: "AWS::EC2::NetworkAclEntry"
-    Properties:
-      NetworkAclId: !Ref NetworkACL
-      RuleNumber: 32767
-      Protocol: "-1"
-      RuleAction: "deny"
-      Egress: false
-      CidrBlock: "0.0.0.0/0"
-      Description: "Deny all inbound traffic"
 
   ECSServiceRole:
     Type: "AWS::IAM::Role"
@@ -280,8 +268,6 @@ Resources:
             Action: "sts:AssumeRole"
       Description: "Role for ECS Service"
       MaxSessionDuration: 3600
-      ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AmazonECSServiceRolePolicy"
 
   ECSTaskExecutionRole:
     Type: "AWS::IAM::Role"
@@ -316,18 +302,16 @@ Resources:
       Description: >
         IAM Role for AWS Application Auto Scaling with ECS. 
         Allows ECS Application Auto Scaling service to perform actions on ECS services and CloudWatch alarms.
-      ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AWSServiceRoleForAmazonECS"
 
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Sub "${ProjectName}-ecs-cluster"
+      ClusterName: !Sub "${ProjectName}-ecs-clstr"
 
   ECRContainerRepository:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: !Sub "${ProjectName}-container-repository"
+      RepositoryName: !Sub "${ProjectName}-cont-repo"
       EncryptionConfiguration:
         EncryptionType: "AES256"
       ImageScanningConfiguration:
@@ -337,8 +321,7 @@ Resources:
     Type: AWS::ECS::TaskDefinition
     DependsOn: ECRContainerRepository
     Properties:
-      Family: !Sub "${ProjectName}-task-definition"
-      Description: ECS Task Definition for the project
+      Family: !Sub "${ProjectName}-tsk-def"
       NetworkMode: "awsvpc"
       Cpu: 1024
       Memory: 3072
@@ -347,21 +330,25 @@ Resources:
       ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
       TaskRoleArn: !GetAtt ECSServiceRole.Arn
       ContainerDefinitions:
-        - Name: !Sub "${ProjectName}-container"
+        - Name: !Sub "${ProjectName}-cont"
           Image: !Ref ECRContainerRepository
           Essential: true
           PortMappings:
             - ContainerPort: 80
               HostPort: 80
               Protocol: "tcp"
-      UpdateReplacePolicy: "Retain"
-      DeletionPolicy: "Retain"
+      TaskPlacement:
+        Strategies:
+          - Type: "Spread"
+            Field: "attribute:ecs.availability-zone"
+          - Type: "Spread"
+            Field: "instanceId"
 
   ECSService:
     Type: AWS::ECS::Service
     Properties:
       Cluster: !Ref ECSCluster
-      ServiceName: !Sub "${ProjectName}-service"
+      ServiceName: !Sub "${ProjectName}-srvc"
       TaskDefinition: !Ref ECSTaskDefinition
       LaunchType: "EC2"
       DesiredCount: 1
@@ -381,12 +368,6 @@ Resources:
           ContainerName: "project-container"
           ContainerPort: 80
       HealthCheckGracePeriodSeconds: 0
-      TaskPlacement:
-        Strategies:
-          - Type: "Spread"
-            Field: "attribute:ecs.availability-zone"
-          - Type: "Spread"
-            Field: "instanceId"
 
   ECSScalableTarget:
     Type: "AWS::ApplicationAutoScaling::ScalableTarget"
@@ -401,7 +382,7 @@ Resources:
   ECSScalingPolicy:
     Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
     Properties:
-      PolicyName: !Sub "${ProjectName}-ScalingPolicy"
+      PolicyName: !Sub "${ProjectName}-scl-pol"
       Description: "Auto Scaling policy for the project"
       ScalingTargetId: !Ref ECSScalableTarget
       PolicyType: "TargetTrackingScaling"
@@ -722,11 +703,11 @@ Resources:
   BuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Sub "${ProjectName}-build-project"
+      Name: !Sub "${ProjectName}-bld-prj"
       ServiceRole: !GetAtt CodeBuildServiceRole.Arn
       Artifacts:
         Type: CODEPIPELINE
-        Name: !Sub "${ProjectName}-build-project"
+        Name: !Sub "${ProjectName}-bld-prj"
         Packaging: NONE
         EncryptionDisabled: false
       Environment:
@@ -748,18 +729,17 @@ Resources:
         S3Logs:
           Status: DISABLED
           EncryptionDisabled: false
-      ProjectVisibility: PRIVATE
 
   Application:
     Type: AWS::CodeDeploy::Application
     Properties:
-      ApplicationName: !Sub "${ProjectName}-application"
+      ApplicationName: !Sub "${ProjectName}-app"
       ComputePlatform: Lambda
 
   Pipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: !Sub "${ProjectName}-pipeline"
+      Name: !Sub "${ProjectName}-pln"
       RoleArn: !GetAtt CodePipelineServiceRole.Arn
       ArtifactStore:
         Type: S3
@@ -767,7 +747,7 @@ Resources:
       Stages:
         - Name: Source
           Actions:
-            - Name: Source
+            - Name: !Sub ${ProjectName}-source
               ActionTypeId:
                 Category: Source
                 Owner: AWS
@@ -781,11 +761,11 @@ Resources:
                 OutputArtifactFormat: CODE_ZIP
               OutputArtifacts:
                 - Name: SourceArtifact
-              Region: ${Region}
+              Region: !Sub ${Region}
               Namespace: SourceVariables
         - Name: Approval
           Actions:
-            - Name: ${ProjectName}-deployment-approval
+            - Name: !Sub ${ProjectName}-approval
               ActionTypeId:
                 Category: Approval
                 Owner: AWS
@@ -793,10 +773,10 @@ Resources:
                 Version: "1"
               RunOrder: 1
               Configuration: {}
-              Region: ${Region}
+              Region: !Sub ${Region}
         - Name: Build
           Actions:
-            - Name: Build
+            - Name: !Sub ${ProjectName}-build
               ActionTypeId:
                 Category: Build
                 Owner: AWS
@@ -813,7 +793,7 @@ Resources:
               Namespace: BuildVariables
         - Name: Deploy
           Actions:
-            - Name: Deploy
+            - Name: !Sub ${ProjectName}-deploy
               ActionTypeId:
                 Category: Deploy
                 Owner: AWS
@@ -822,12 +802,11 @@ Resources:
               RunOrder: 1
               Configuration:
                 ApplicationName: !Ref Application
-                DeploymentGroupName: !Sub "${ProjectName}-deployment-group"
+                DeploymentGroupName: !Sub "${ProjectName}-dpl-grp"
               InputArtifacts:
                 - Name: BuildArtifact
               Region: !Ref Region
               Namespace: DeployVariables
-      Version: 2
       PipelineType: V2
 
   DataProcessedBucket:
@@ -873,7 +852,6 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: "AES256"
-
 
 Outputs:
   AccessKeyOutput:
