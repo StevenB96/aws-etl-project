@@ -1,7 +1,54 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
+Parameters:
+  ProjectName:
+    Type: String
+    Default: "etl-project"
+  Region:
+    Type: String
+    Default: "us-east-1"
+
+Description: |
+  AWS CloudFormation template for setting up users, access keys, and networking-related resources.
+
 Resources:
-  # Networking Resources
+  IAMUser:
+    Type: "AWS::IAM::User"
+    Properties:
+      UserName: !Sub "${ProjectName}-user"
+      Tags:
+        - Key: "Name"
+          Value: !Ref ProjectName
+      Description: IAM user for the project.
+
+  IAMUserAccessKey:
+    Type: "AWS::IAM::AccessKey"
+    Properties:
+      UserName: !Ref IAMUser
+      Description: Access key for the IAM user.
+
+  SecretManagerSecret:
+    Type: "AWS::SecretsManager::Secret"
+    Properties:
+      Name: !Sub "${ProjectName}-user-access-key"
+      SecretString: '{"AccessKeyId": !Ref IAMUserAccessKey, "SecretAccessKey": !GetAtt IAMUserAccessKey.SecretAccessKey}'
+      Description: Secret containing IAM user's access key information.
+
+  ElasticLoadBalancingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ${ProjectName}-ElasticLoadBalancingRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: "elasticloadbalancing.amazonaws.com"
+            Action: "sts:AssumeRole"
+      Description: "Allows ELB to call AWS services on your behalf."
+      MaxSessionDuration: 3600
+      Path: "/aws-service-role/elasticloadbalancing.amazonaws.com/"
+
   DhcpOptions:
     Type: "AWS::EC2::DHCPOptions"
     Properties:
@@ -13,90 +60,90 @@ Resources:
           Values:
             - "AmazonProvidedDNS"
 
-  ETLProjectVPC:
+  VPC:
     Type: "AWS::EC2::VPC"
     Properties:
       CidrBlock: "172.31.0.0/16"
       DhcpOptionsId: !Ref DhcpOptions
       Tags:
         - Key: "Name"
-          Value: "etl-project-vpc"
+          Value: !Sub "${ProjectName}-vpc"
       InstanceTenancy: "default"
 
-  ETLProjectInternetGateway:
+  InternetGateway:
     Type: "AWS::EC2::InternetGateway"
     Properties:
       Tags:
         - Key: "Name"
-          Value: "etl-project-internet-gateway"
+          Value: !Sub "${ProjectName}-internet-gateway"
 
-  AttachETLProjectGateway:
+  AttachGateway:
     Type: "AWS::EC2::VPCGatewayAttachment"
     Properties:
-      VpcId: !Ref ETLProjectVPC
-      InternetGatewayId: !Ref ETLProjectInternetGateway
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
 
-  ETLProjectRouteTable:
+  RouteTable:
     Type: "AWS::EC2::RouteTable"
     Properties:
-      VpcId: !Ref ETLProjectVPC
+      VpcId: !Ref VPC
       Tags:
         - Key: "Name"
-          Value: "etl-project-route-table"
+          Value: !Sub "${ProjectName}-route-table"
 
-  ETLProjectRoute:
+  Route:
     Type: "AWS::EC2::Route"
     Properties:
-      RouteTableId: !Ref ETLProjectRouteTable
+      RouteTableId: !Ref RouteTable
       DestinationCidrBlock: "0.0.0.0/0"
-      GatewayId: !Ref ETLProjectInternetGateway
+      GatewayId: !Ref InternetGateway
 
-  ETLProjectLocalRoute:
+  LocalRoute:
     Type: "AWS::EC2::Route"
     Properties:
-      RouteTableId: !Ref ETLProjectRouteTable
+      RouteTableId: !Ref RouteTable
       DestinationCidrBlock: "172.31.0.0/16"
       GatewayId: "local"
 
-  ETLProjectSubnetA:
+  SubnetA:
     Type: "AWS::EC2::Subnet"
     Properties:
       AvailabilityZone: "us-east-1a"
       CidrBlock: "172.31.0.0/20"
-      VpcId: !Ref ETLProjectVPC
+      VpcId: !Ref VPC
       MapPublicIpOnLaunch: false
       Tags:
         - Key: "Name"
-          Value: "etl-project-subnet-a"
+          Value: !Sub "${ProjectName}-subnet-a"
 
-  ETLProjectSubnetB:
+  SubnetB:
     Type: "AWS::EC2::Subnet"
     Properties:
       AvailabilityZone: "us-east-1b"
       CidrBlock: "172.31.16.0/20"
-      VpcId: !Ref ETLProjectVPC
+      VpcId: !Ref VPC
       MapPublicIpOnLaunch: false
       Tags:
         - Key: "Name"
-          Value: "etl-project-subnet-b"
+          Value: !Sub "${ProjectName}-subnet-b"
 
-  ETLProjectSubnetC:
+  SubnetC:
     Type: "AWS::EC2::Subnet"
     Properties:
       AvailabilityZone: "us-east-1c"
       CidrBlock: "172.31.32.0/20"
-      VpcId: !Ref ETLProjectVPC
+      VpcId: !Ref VPC
       MapPublicIpOnLaunch: false
       Tags:
         - Key: "Name"
-          Value: "etl-project-subnet-c"
+          Value: !Sub "${ProjectName}-subnet-c"
 
-  ETLProjectSecurityGroupETLProject:
+  SecurityGroup:
     Type: "AWS::EC2::SecurityGroup"
     Properties:
-      GroupName: "etl-project-security-group"
-      VpcId: !Ref ETLProjectVPC
-      Description: "ETL project security group"
+      GroupName: !Sub "${ProjectName}-security-group"
+      VpcId: !Ref VPC
+      Description: "Security group for the project"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -119,199 +166,110 @@ Resources:
           CidrIp: "0.0.0.0/0"
       Tags:
         - Key: "Name"
-          Value: "etl-project-security-group"
+          Value: !Sub "${ProjectName}-security-group"
 
-  ETLProjectNetworkACL:
-    Type: "AWS::EC2::NetworkAcl"
+  TargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
     Properties:
-      VpcId: !Ref ETLProjectVPC
+      Name: !Sub "${ProjectName}-target-group"
+      Protocol: "HTTP"
+      Port: 80
+      VpcId: !Ref VPC
+      HealthCheckProtocol: "HTTP"
+      HealthCheckPort: "traffic-port"
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 2
+      HealthCheckPath: "/"
+      Matcher:
+        HttpCode: "200"
+
+  LoadBalancer:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      Name: !Sub "${ProjectName}-load-balancer"
+      Subnets:
+        - !Ref SubnetA
+        - !Ref SubnetB
+        - !Ref SubnetC
+      Scheme: "internet-facing"
+      LoadBalancerAttributes:
+        - Key: idle_timeout.timeout_seconds
+          Value: "60"
+      SecurityGroups:
+        - !Ref SecurityGroup
       Tags:
         - Key: "Name"
-          Value: "etl-project-network-acl"
+          Value: !Sub "${ProjectName}-load-balancer"
+      Role: !GetAtt ElasticLoadBalancingRole.Arn
+      Listeners:
+        - Protocol: HTTP
+          Port: 80
+          DefaultActions:
+            - Type: "forward"
+              TargetGroupArn: !Ref TargetGroup
+      DefaultActions:
+        - Type: "forward"
+          TargetGroupArn: !Ref TargetGroup
 
-  ETLProjectNetworkACLAssociation:
-    Type: "AWS::EC2::SubnetNetworkAclAssociation"
+  NetworkACL:
+    Type: "AWS::EC2::NetworkAcl"
     Properties:
-      SubnetId: !Ref ETLProjectSubnetA
-      NetworkAclId: !Ref ETLProjectNetworkACL
+      VpcId: !Ref VPC
+      Tags:
+        - Key: "Name"
+          Value: !Sub "${ProjectName}-network-acl"
 
-  ETLProjectNetworkACLEntry1:
+  NetworkACLEntry1:
     Type: "AWS::EC2::NetworkAclEntry"
     Properties:
-      NetworkAclId: !Ref ETLProjectNetworkACL
+      NetworkAclId: !Ref NetworkACL
       RuleNumber: 100
       Protocol: "-1"
       RuleAction: "allow"
       Egress: true
       CidrBlock: "0.0.0.0/0"
+      Description: "Allow all outbound traffic"
 
-  ETLProjectNetworkACLEntry2:
+  NetworkACLEntry2:
     Type: "AWS::EC2::NetworkAclEntry"
     Properties:
-      NetworkAclId: !Ref ETLProjectNetworkACL
+      NetworkAclId: !Ref NetworkACL
       RuleNumber: 32767
       Protocol: "-1"
       RuleAction: "deny"
       Egress: true
       CidrBlock: "0.0.0.0/0"
+      Description: "Deny all outbound traffic"
 
-  ETLProjectNetworkACLEntry3:
+  NetworkACLEntry3:
     Type: "AWS::EC2::NetworkAclEntry"
     Properties:
-      NetworkAclId: !Ref ETLProjectNetworkACL
+      NetworkAclId: !Ref NetworkACL
       RuleNumber: 100
       Protocol: "-1"
       RuleAction: "allow"
       Egress: false
       CidrBlock: "0.0.0.0/0"
+      Description: "Allow all inbound traffic"
 
-  ETLProjectNetworkACLEntry4:
+  NetworkACLEntry4:
     Type: "AWS::EC2::NetworkAclEntry"
     Properties:
-      NetworkAclId: !Ref ETLProjectNetworkACL
+      NetworkAclId: !Ref NetworkACL
       RuleNumber: 32767
       Protocol: "-1"
       RuleAction: "deny"
       Egress: false
-      CidrBlock: "0.0.0.0/0" ######################
+      CidrBlock: "0.0.0.0/0"
+      Description: "Deny all inbound traffic"
 
-  # IAM Roles
-  ECSInstanceRole:
-    Type: AWS::IAM::Role
+  ECSServiceRole:
+    Type: "AWS::IAM::Role"
     Properties:
-      RoleName: "ecsInstanceRole"
-      Path: "/"
-      AssumeRolePolicyDocument:
-        Version: "2008-10-17"
-        Statement:
-          - Sid: ""
-            Effect: "Allow"
-            Principal:
-              Service: "ec2.amazonaws.com"
-            Action: "sts:AssumeRole"
-      MaxSessionDuration: 3600
-
-  ECSTaskExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: "ecsTaskExecutionRole"
-      Path: "/"
-      AssumeRolePolicyDocument:
-        Version: "2008-10-17"
-        Statement:
-          - Sid: ""
-            Effect: "Allow"
-            Principal:
-              Service: "ecs-tasks.amazonaws.com"
-            Action: "sts:AssumeRole"
-      MaxSessionDuration: 3600
-
-  AWSQuickSetupStackSetLocalAdministrationRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: "AWS-QuickSetup-StackSet-Local-AdministrationRole"
-      Path: "/"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service: "cloudformation.amazonaws.com"
-            Action: "sts:AssumeRole"
-      MaxSessionDuration: 3600
-
-  AWSQuickSetupStackSetLocalExecutionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: "AWS-QuickSetup-StackSet-Local-ExecutionRole"
-      Path: "/"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              AWS: "arn:aws:iam::690469543125:role/AWS-QuickSetup-StackSet-Local-AdministrationRole"
-            Action: "sts:AssumeRole"
-      MaxSessionDuration: 3600
-
-  AWSCodePipelineServiceRoleUSEast1ETLProjectPipeline:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: "AWSCodePipelineServiceRole-us-east-1-etl-project-pipeline"
-      Path: "/service-role/"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service: "codepipeline.amazonaws.com"
-            Action: "sts:AssumeRole"
-      MaxSessionDuration: 3600
-
-  AWSServiceRoleForAmazonSSM:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: "AWSServiceRoleForAmazonSSM"
-      Path: "/aws-service-role/ssm.amazonaws.com/"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service: "ssm.amazonaws.com"
-            Action: "sts:AssumeRole"
-      Description: "Provides access to AWS Resources managed or used by Amazon SSM."
-      MaxSessionDuration: 3600
-
-  AWSServiceRoleForApplicationAutoScalingECSService:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: "AWSServiceRoleForApplicationAutoScaling_ECSService"
-      Path: "/aws-service-role/ecs.application-autoscaling.amazonaws.com/"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service: "ecs.application-autoscaling.amazonaws.com"
-            Action: "sts:AssumeRole"
-      MaxSessionDuration: 3600
-
-  AWSServiceRoleForAutoScaling:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: "AWSServiceRoleForAutoScaling"
-      Path: "/aws-service-role/autoscaling.amazonaws.com/"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service: "autoscaling.amazonaws.com"
-            Action: "sts:AssumeRole"
-      Description: "Default Service-Linked Role enables access to AWS Services and Resources used or managed by Auto Scaling"
-      MaxSessionDuration: 3600
-
-  AWSServiceRoleForEC2Spot:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: "AWSServiceRoleForEC2Spot"
-      Path: "/aws-service-role/spot.amazonaws.com/"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service: "spot.amazonaws.com"
-            Action: "sts:AssumeRole"
-      Description: "Default EC2 Spot Service Linked Role"
-      MaxSessionDuration: 3600
-
-  AWSServiceRoleForECS:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: "AWSServiceRoleForECS"
-      Path: "/aws-service-role/ecs.amazonaws.com/"
+      RoleName: !Sub "${ProjectName}-ECSServiceRole"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -319,234 +277,792 @@ Resources:
             Principal:
               Service: "ecs.amazonaws.com"
             Action: "sts:AssumeRole"
-      Description: "Role to enable Amazon ECS to manage your cluster."
+      Description: "Role for ECS Service"
       MaxSessionDuration: 3600
+      Policies:
+        - PolicyName: AmazonECSServiceRolePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: "ECSTaskManagement"
+                Effect: "Allow"
+                Action:
+                  - "ec2:AttachNetworkInterface"
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:CreateNetworkInterfacePermission"
+                  - "ec2:DeleteNetworkInterface"
+                  - "ec2:DeleteNetworkInterfacePermission"
+                  - "ec2:Describe*"
+                  - "ec2:DetachNetworkInterface"
+                  - "elasticloadbalancing:DeregisterInstancesFromLoadBalancer"
+                  - "elasticloadbalancing:DeregisterTargets"
+                  - "elasticloadbalancing:Describe*"
+                  - "elasticloadbalancing:RegisterInstancesWithLoadBalancer"
+                  - "elasticloadbalancing:RegisterTargets"
+                  - "route53:ChangeResourceRecordSets"
+                  - "route53:CreateHealthCheck"
+                  - "route53:DeleteHealthCheck"
+                  - "route53:Get*"
+                  - "route53:List*"
+                  - "route53:UpdateHealthCheck"
+                  - "servicediscovery:DeregisterInstance"
+                  - "servicediscovery:Get*"
+                  - "servicediscovery:List*"
+                  - "servicediscovery:RegisterInstance"
+                  - "servicediscovery:UpdateInstanceCustomHealthStatus"
+                Resource: "*"
+              - Sid: "AutoScaling"
+                Effect: "Allow"
+                Action:
+                  - "autoscaling:Describe*"
+                Resource: "*"
+              - Sid: "AutoScalingManagement"
+                Effect: "Allow"
+                Action:
+                  - "autoscaling:DeletePolicy"
+                  - "autoscaling:PutScalingPolicy"
+                  - "autoscaling:SetInstanceProtection"
+                  - "autoscaling:UpdateAutoScalingGroup"
+                  - "autoscaling:PutLifecycleHook"
+                  - "autoscaling:DeleteLifecycleHook"
+                  - "autoscaling:CompleteLifecycleAction"
+                  - "autoscaling:RecordLifecycleActionHeartbeat"
+                Resource: "*"
+                Condition:
+                  Null:
+                    "autoscaling:ResourceTag/AmazonECSManaged": "false"
+              - Sid: "AutoScalingPlanManagement"
+                Effect: "Allow"
+                Action:
+                  - "autoscaling-plans:CreateScalingPlan"
+                  - "autoscaling-plans:DeleteScalingPlan"
+                  - "autoscaling-plans:DescribeScalingPlans"
+                  - "autoscaling-plans:DescribeScalingPlanResources"
+                Resource: "*"
+              - Sid: "EventBridge"
+                Effect: "Allow"
+                Action:
+                  - "events:DescribeRule"
+                  - "events:ListTargetsByRule"
+                Resource: "arn:aws:events:*:*:rule/ecs-managed-*"
+              - Sid: "EventBridgeRuleManagement"
+                Effect: "Allow"
+                Action:
+                  - "events:PutRule"
+                  - "events:PutTargets"
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    "events:ManagedBy": "ecs.amazonaws.com"
+              - Sid: "CWAlarmManagement"
+                Effect: "Allow"
+                Action:
+                  - "cloudwatch:DeleteAlarms"
+                  - "cloudwatch:DescribeAlarms"
+                  - "cloudwatch:PutMetricAlarm"
+                Resource: "arn:aws:cloudwatch:*:*:alarm:*"
+              - Sid: "ECSTagging"
+                Effect: "Allow"
+                Action:
+                  - "ec2:CreateTags"
+                Resource: "arn:aws:ec2:*:*:network-interface/*"
+              - Sid: "CWLogGroupManagement"
+                Effect: "Allow"
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:DescribeLogGroups"
+                  - "logs:PutRetentionPolicy"
+                Resource: "arn:aws:logs:*:*:log-group:/aws/ecs/*"
+              - Sid: "CWLogStreamManagement"
+                Effect: "Allow"
+                Action:
+                  - "logs:CreateLogStream"
+                  - "logs:DescribeLogStreams"
+                  - "logs:PutLogEvents"
+                Resource: "arn:aws:logs:*:*:log-group:/aws/ecs/*:log-stream:*"
+              - Sid: "ExecuteCommandSessionManagement"
+                Effect: "Allow"
+                Action:
+                  - "ssm:DescribeSessions"
+                Resource: "*"
+              - Sid: "ExecuteCommand"
+                Effect: "Allow"
+                Action:
+                  - "ssm:StartSession"
+                Resource:
+                  - "arn:aws:ecs:*:*:task/*"
+                  - "arn:aws:ssm:*:*:document/AmazonECS-ExecuteInteractiveCommand"
+              - Sid: "CloudMapResourceCreation"
+                Effect: "Allow"
+                Action:
+                  - "servicediscovery:CreateHttpNamespace"
+                  - "servicediscovery:CreateService"
+                Resource: "*"
+                Condition:
+                  ForAllValues:StringEquals:
+                    "aws:TagKeys": ["AmazonECSManaged"]
+              - Sid: "CloudMapResourceTagging"
+                Effect: "Allow"
+                Action: "servicediscovery:TagResource"
+                Resource: "*"
+                Condition:
+                  StringLike:
+                    "aws:RequestTag/AmazonECSManaged": "*"
+              - Sid: "CloudMapResourceDeletion"
+                Effect: "Allow"
+                Action:
+                  - "servicediscovery:DeleteService"
+                Resource: "*"
+                Condition:
+                  Null:
+                    "aws:ResourceTag/AmazonECSManaged": "false"
+              - Sid: "CloudMapResourceDiscovery"
+                Effect: "Allow"
+                Action:
+                  - "servicediscovery:DiscoverInstances"
+                  - "servicediscovery:DiscoverInstancesRevision"
+                Resource: "*"
 
-  AWSServiceRoleForElasticLoadBalancing:
-    Type: AWS::IAM::Role
+  ECSTaskExecutionRole:
+    Type: "AWS::IAM::Role"
     Properties:
-      RoleName: "AWSServiceRoleForElasticLoadBalancing"
-      Path: "/aws-service-role/elasticloadbalancing.amazonaws.com/"
+      RoleName: !Sub "${ProjectName}-ECSTaskExecutionRole"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: "Allow"
             Principal:
-              Service: "elasticloadbalancing.amazonaws.com"
+              Service: "ecs-tasks.amazonaws.com"
             Action: "sts:AssumeRole"
-      Description: "Allows ELB to call AWS services on your behalf."
+      Description: "Role for ECS Task Execution"
       MaxSessionDuration: 3600
+      Policies:
+        - PolicyName: ECRandS3Permissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ecr:GetAuthorizationToken"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:BatchGetImage"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                  - "s3:*"
+                  - "s3-object-lambda:*"
+                Resource: "*"
+          PolicyDescription: "Allows ECS tasks to interact with Amazon ECR and Amazon S3."
 
-  AWSServiceRoleForSupport:
-    Type: AWS::IAM::Role
+  ApplicationAutoScalingRoleForECSService:
+    Type: "AWS::IAM::Role"
     Properties:
-      RoleName: "AWSServiceRoleForSupport"
-      Path: "/aws-service-role/support.amazonaws.com/"
+      RoleName: !Sub "${ProjectName}-ApplicationAutoScalingRoleForECSService"
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
           - Effect: "Allow"
             Principal:
-              Service: "support.amazonaws.com"
-            Action: "sts:AssumeRole"
-      Description: "Enables resource access for AWS to provide billing, administrative and support services"
+              Service: "ecs.application-autoscaling.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
       MaxSessionDuration: 3600
+      Description: "IAM Role for AWS Application Auto Scaling with ECS. Allows ECS Application Auto Scaling service to perform actions on ECS services and CloudWatch alarms."
+      Policies:
+        - PolicyName: ECSAutoScalingPermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ecs:DescribeServices"
+                  - "ecs:UpdateService"
+                  - "cloudwatch:PutMetricAlarm"
+                  - "cloudwatch:DescribeAlarms"
+                  - "cloudwatch:DeleteAlarms"
+                Resource: "*"
 
-  ECSAutoScalingGroup:
-    Type: AWS::AutoScaling::AutoScalingGroup
+  ECSCluster:
+    Type: AWS::ECS::Cluster
     Properties:
-      AutoScalingGroupName: "Infra-ECS-Cluster-etl-project-cluster-5584ebc1-ECSAutoScalingGroup-8JTMfeLGhqNF"
-      MinSize: 0
-      MaxSize: 2
-      DesiredCapacity: 0
-      DefaultCooldown: 300
-      AvailabilityZones:
-        - "us-east-1a"
-        - "us-east-1b"
-        - "us-east-1c"
-      VPCZoneIdentifier: !Ref ETLProjectPrivateSubnets
-      HealthCheckType: "EC2"
-      HealthCheckGracePeriod: 300
-      LaunchConfigurationName: !Ref ECSLaunchConfig
-      Tags:
-        - Key: "Name"
-          Value: "Infra-ECS-Cluster-etl-project-cluster-5584ebc1"
-          PropagateAtLaunch: true
+      ClusterName: !Sub "${ProjectName}-ecs-cluster"
+      Description: ECS Cluster for the project
 
-  ECSLaunchConfig:
-    Type: AWS::AutoScaling::LaunchConfiguration
+  ECRContainerRepository:
+    Type: AWS::ECR::Repository
     Properties:
-      AssociatePublicIpAddress: true
-      BlockDeviceMappings:
-        - DeviceName: "/dev/xvda"
-          Ebs:
-            VolumeSize: 30
-            VolumeType: "gp2"
-      IamInstanceProfile: !Ref ECSInstanceRole
-      ImageId: "ami-xxxxxxxxxxxxxxxxx"  # Specify the appropriate AMI ID
-      InstanceType: "t2.micro"
-      KeyName: "your-key-pair-name"
-      SecurityGroups:
-        - !Ref ETLProjectSecurityGroupETLProject
+      RepositoryName: !Sub "${ProjectName}-container-repository"
+      Description: ECR Repository for storing containers of the project
+      ImageScanningConfiguration:
+        scanOnPush: false
+      EncryptionConfiguration:
+        encryptionType: "AES256"
 
-  ECSAutoScalingPolicy:
-    Type: AWS::AutoScaling::ScalingPolicy
+  ECSTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn: !Ref ECRContainerRepository
     Properties:
-      AutoScalingGroupName: !Ref ECSAutoScalingGroup
-      PolicyName: "ECSManagedAutoScalingPolicy-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # Replace with a unique name
+      Family: !Sub "${ProjectName}-task-definition"
+      Description: ECS Task Definition for the project
+      NetworkMode: "awsvpc"
+      Cpu: 1024
+      Memory: 3072
+      RequiresCompatibilities:
+        - "EC2"
+      ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt ECSServiceRole.Arn
+      ContainerDefinitions:
+        - Name: !Sub "${ProjectName}-container"
+          Image: !Ref ECRContainerRepository
+          Essential: true
+          PortMappings:
+            - ContainerPort: 80
+              HostPort: 80
+              Protocol: "tcp"
+      UpdateReplacePolicy: "Retain"
+      DeletionPolicy: "Retain"
+
+  ECSService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ECSCluster
+      ServiceName: !Sub "${ProjectName}-service"
+      TaskDefinition: !Ref ECSTaskDefinition
+      LaunchType: "EC2"
+      DesiredCount: 1
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 100
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          Subnets:
+            - !Ref SubnetA
+            - !Ref SubnetB
+            - !Ref SubnetC
+          SecurityGroups:
+            - !Ref SecurityGroup
+      LoadBalancers:
+        - TargetGroupArn: !Ref TargetGroup
+          ContainerName: "project-container"
+          ContainerPort: 80
+      HealthCheckGracePeriodSeconds: 0
+      TaskPlacement:
+        Strategies:
+          - Type: "Spread"
+            Field: "attribute:ecs.availability-zone"
+          - Type: "Spread"
+            Field: "instanceId"
+
+  ECSScalableTarget:
+    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+    Properties:
+      MaxCapacity: 2
+      MinCapacity: 1
+      ResourceId: !Sub "service/${ECSService}/resource"
+      ScalableDimension: "ecs:service:DesiredCount"
+      ServiceNamespace: "ecs"
+      RoleARN: !GetAtt "ApplicationAutoScalingRoleForECSService.Arn"
+
+  ECSScalingPolicy:
+    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    Properties:
+      PolicyName: !Sub "${ProjectName}-ScalingPolicy"
+      Description: "Auto Scaling policy for the project"
+      ScalingTargetId: !Ref ECSScalableTarget
       PolicyType: "TargetTrackingScaling"
-      EstimatedInstanceWarmup: 300
-      TargetTrackingConfiguration:
-        CustomizedMetricSpecification:
-          MetricName: "CapacityProviderReservation"
-          Namespace: "AWS/ECS/ManagedScaling"
-          Dimensions:
-            - Name: "CapacityProviderName"
-              Value: "Infra-ECS-Cluster-etl-project-cluster-5584ebc1-EC2CapacityProvider-zk6NMnaHlu1V"
-            - Name: "ClusterName"
-              Value: "etl-project-cluster"
-          Statistic: "Average"
-        TargetValue: 100.0
-        DisableScaleIn: false
-      Alarms:
-        - !Sub "TargetTracking-${ECSAutoScalingGroup}-AlarmHigh-${AWS::StackName}"
-        - !Sub "TargetTracking-${ECSAutoScalingGroup}-AlarmLow-${AWS::StackName}"
-      Enabled: true
+      TargetTrackingScalingPolicyConfiguration:
+        TargetValue: 70.0
+        PredefinedMetricSpecification:
+          PredefinedMetricType: "ECSServiceAverageCPUUtilization"
 
-  # CodeBuild Project
-  ETLProjectBuildProject:
-    Type: "AWS::CodeBuild::Project"
+  CodePipelineServiceRole:
+    Type: AWS::IAM::Role
     Properties:
-      Name: "etl-project-build-project"
-      Description: "ETL Project Build Project"
-      ServiceRole: "arn:aws:iam::690469543125:role/service-role/codebuild-etl-project-build-project-service-role"
+      RoleName: ${ProjectName}-CodePipelineServiceRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codepipeline.amazonaws.com
+            Action: sts:AssumeRole
+      MaxSessionDuration: 3600
+      Policies:
+        - PolicyName: CodePipelinePermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: "*"
+                Condition:
+                  StringEqualsIfExists:
+                    iam:PassedToService:
+                      - "cloudformation.amazonaws.com"
+                      - "elasticbeanstalk.amazonaws.com"
+                      - "ec2.amazonaws.com"
+                      - "ecs-tasks.amazonaws.com"
+              - Effect: Allow
+                Action:
+                  - codecommit:CancelUploadArchive
+                  - codecommit:GetBranch
+                  - codecommit:GetCommit
+                  - codecommit:GetRepository
+                  - codecommit:GetUploadArchiveStatus
+                  - codecommit:UploadArchive
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - codedeploy:CreateDeployment
+                  - codedeploy:GetApplication
+                  - codedeploy:GetApplicationRevision
+                  - codedeploy:GetDeployment
+                  - codedeploy:GetDeploymentConfig
+                  - codedeploy:RegisterApplicationRevision
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - codestar-connections:UseConnection
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - elasticbeanstalk:*
+                  - ec2:*
+                  - elasticloadbalancing:*
+                  - autoscaling:*
+                  - cloudwatch:*
+                  - s3:*
+                  - sns:*
+                  - cloudformation:*
+                  - rds:*
+                  - sqs:*
+                  - ecs:*
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                  - lambda:ListFunctions
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - opsworks:CreateDeployment
+                  - opsworks:DescribeApps
+                  - opsworks:DescribeCommands
+                  - opsworks:DescribeDeployments
+                  - opsworks:DescribeInstances
+                  - opsworks:DescribeStacks
+                  - opsworks:UpdateApp
+                  - opsworks:UpdateStack
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - cloudformation:CreateStack
+                  - cloudformation:DeleteStack
+                  - cloudformation:DescribeStacks
+                  - cloudformation:UpdateStack
+                  - cloudformation:CreateChangeSet
+                  - cloudformation:DeleteChangeSet
+                  - cloudformation:DescribeChangeSet
+                  - cloudformation:ExecuteChangeSet
+                  - cloudformation:SetStackPolicy
+                  - cloudformation:ValidateTemplate
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuildBatches
+                  - codebuild:StartBuildBatch
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - devicefarm:ListProjects
+                  - devicefarm:ListDevicePools
+                  - devicefarm:GetRun
+                  - devicefarm:GetUpload
+                  - devicefarm:CreateUpload
+                  - devicefarm:ScheduleRun
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - servicecatalog:ListProvisioningArtifacts
+                  - servicecatalog:CreateProvisioningArtifact
+                  - servicecatalog:DescribeProvisioningArtifact
+                  - servicecatalog:DeleteProvisioningArtifact
+                  - servicecatalog:UpdateProduct
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - cloudformation:ValidateTemplate
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ecr:DescribeImages
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - states:DescribeExecution
+                  - states:DescribeStateMachine
+                  - states:StartExecution
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - appconfig:StartDeployment
+                  - appconfig:StopDeployment
+                  - appconfig:GetDeployment
+                Resource: "*"
+
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ${ProjectName}-CodeBuildServiceRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      MaxSessionDuration: 3600
+      Policies:
+        - PolicyName: CodeBuildPermissions
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudwatch:PutMetricData
+                  - ds:CreateComputer
+                  - ds:DescribeDirectories
+                  - ec2:DescribeInstanceStatus
+                  - logs:*
+                  - ssm:*
+                  - ec2messages:*
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - iam:CreateServiceLinkedRole
+                Resource: "arn:aws:iam::*:role/aws-service-role/ssm.amazonaws.com/AWSServiceRoleForAmazonSSM*"
+                Condition:
+                  StringLike:
+                    iam:AWSServiceName: "ssm.amazonaws.com"
+              - Effect: Allow
+                Action:
+                  - iam:DeleteServiceLinkedRole
+                  - iam:GetServiceLinkedRoleDeletionStatus
+                Resource: "arn:aws:iam::*:role/aws-service-role/ssm.amazonaws.com/AWSServiceRoleForAmazonSSM*"
+              - Effect: Allow
+                Action:
+                  - ssmmessages:CreateControlChannel
+                  - ssmmessages:CreateDataChannel
+                  - ssmmessages:OpenControlChannel
+                  - ssmmessages:OpenDataChannel
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - arn:aws:logs:us-east-1:690469543125:log-group:/aws/codebuild/${ProjectName}-build-project
+                  - arn:aws:logs:us-east-1:690469543125:log-group:/aws/codebuild/${ProjectName}-build-project:*
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                  - s3:GetBucketAcl
+                  - s3:GetBucketLocation
+                Resource:
+                  - arn:aws:s3:::codepipeline-us-east-1-*
+              - Effect: Allow
+                Action:
+                  - codebuild:CreateReportGroup
+                  - codebuild:CreateReport
+                  - codebuild:UpdateReport
+                  - codebuild:BatchPutTestCases
+                  - codebuild:BatchPutCodeCoverages
+                Resource:
+                  - arn:aws:codebuild:us-east-1:690469543125:report-group/${ProjectName}-build-project-*
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameters
+                Resource: "arn:aws:ssm:us-east-1:690469543125:parameter/CodeBuild/*"
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - arn:aws:secretsmanager:us-east-1:690469543125:secret:/CodeBuild/*'
+              - Effect: Allow
+                Action:
+                  - ec2:CreateNetworkInterface
+                  - ec2:DescribeDhcpOptions
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DeleteNetworkInterface
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeVpcs
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ec2:CreateNetworkInterfacePermission
+                Resource: "arn:aws:ec2:us-east-1:690469543125:network-interface/*"
+                Condition:
+                  StringEquals:
+                    ec2:Subnet:
+                      - "arn:aws:ec2:us-east-1:690469543125:subnet/subnet-02b7a2d2ecab5339b"
+                      - "arn:aws:ec2:us-east-1:690469543125:subnet/subnet-0fe6a84c44c822ba9"
+                      - "arn:aws:ec2:us-east-1:690469543125:subnet/subnet-07e8423f759dc7984"
+                    ec2:AuthorizedService: "codebuild.amazonaws.com"
+              - Effect: Allow
+                Action:
+                  - secretsmanager:*
+                  - cloudformation:CreateChangeSet
+                  - cloudformation:DescribeChangeSet
+                  - cloudformation:DescribeStackResource
+                  - cloudformation:DescribeStacks
+                  - cloudformation:ExecuteChangeSet
+                  - docdb-elastic:GetCluster
+                  - docdb-elastic:ListClusters
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeVpcs
+                  - kms:DescribeKey
+                  - kms:ListAliases
+                  - kms:ListKeys
+                  - lambda:ListFunctions
+                  - rds:DescribeDBClusters
+                  - rds:DescribeDBInstances
+                  - redshift:DescribeClusters
+                  - tag:GetResources
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - lambda:AddPermission
+                  - lambda:CreateFunction
+                  - lambda:GetFunction
+                  - lambda:InvokeFunction
+                  - lambda:UpdateFunctionConfiguration
+                Resource: "arn:aws:lambda:*:*:function:SecretsManager*"
+              - Effect: Allow
+                Action:
+                  - serverlessrepo:CreateCloudFormationChangeSet
+                  - serverlessrepo:GetApplication
+                Resource: "arn:aws:serverlessrepo:*:*:applications/SecretsManager*"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - arn:aws:s3:::awsserverlessrepo-changesets*
+                  - arn:aws:s3:::secrets-manager-rotation-apps-*/*
+
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ${ProjectName}-CodeDeployServiceRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codedeploy.amazonaws.com
+            Action: sts:AssumeRole
+      MaxSessionDuration: 3600
+      Description: >
+        Allows CodeDeploy to read S3 objects, invoke Lambda functions,
+        publish to SNS topics, and update ECS services on your behalf.
+      Policies:
+        - PolicyName: CodeDeployPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ecs:DescribeServices
+                  - ecs:CreateTaskSet
+                  - ecs:UpdateServicePrimaryTaskSet
+                  - ecs:DeleteTaskSet
+                  - elasticloadbalancing:DescribeTargetGroups
+                  - elasticloadbalancing:DescribeListeners
+                  - elasticloadbalancing:ModifyListener
+                  - elasticloadbalancing:DescribeRules
+                  - elasticloadbalancing:ModifyRule
+                  - lambda:InvokeFunction
+                  - cloudwatch:DescribeAlarms
+                  - sns:Publish
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                Resource: "*"
+                Condition:
+                  StringLike:
+                    iam:PassedToService:
+                      - "ecs-tasks.amazonaws.com"
+
+  BuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: ${ProjectName}-build-project
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
       Artifacts:
-        Type: "CODEPIPELINE"
-        Name: "etl-project-build-project"
-        Packaging: "NONE"
+        Type: CODEPIPELINE
+        Name: ${ProjectName}-build-project
+        Packaging: NONE
         EncryptionDisabled: false
-      BadgeEnabled: false
-      Cache:
-        Type: "NO_CACHE"
       Environment:
-        Type: "LINUX_CONTAINER"
-        Image: "aws/codebuild/amazonlinux2-x86_64-standard:4.0"
-        ComputeType: "BUILD_GENERAL1_SMALL"
-        EnvironmentVariables: []
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:4.0
+        ComputeType: BUILD_GENERAL1_SMALL
         PrivilegedMode: true
-        ImagePullCredentialsType: "CODEBUILD"
+        ImagePullCredentialsType: CODEBUILD
       Source:
-        Type: "CODEPIPELINE"
+        Type: CODEPIPELINE
         InsecureSsl: false
       TimeoutInMinutes: 60
       QueuedTimeoutInMinutes: 480
-      EncryptionKey: "arn:aws:kms:us-east-1:690469543125:alias/aws/s3"
+      EncryptionKey: arn:aws:kms:${Region}:690469543125:alias/aws/s3
       Tags: []
-      Created: "2023-12-23T15:43:06.367000+00:00"
-      LastModified: "2023-12-28T00:21:15.539000+00:00"
       LogsConfig:
         CloudWatchLogs:
-          Status: "ENABLED"
+          Status: ENABLED
         S3Logs:
-          Status: "DISABLED"
+          Status: DISABLED
           EncryptionDisabled: false
-      FileSystemLocations: []
-      ProjectVisibility: "PRIVATE"
+      ProjectVisibility: PRIVATE
 
-  # CodePipeline
-  ETLProjectPipeline:
-    Type: "AWS::CodePipeline::Pipeline"
+  Application:
+    Type: AWS::CodeDeploy::Application
     Properties:
-      Name: "etl-project-pipeline"
-      RoleArn: "arn:aws:iam::690469543125:role/service-role/AWSCodePipelineServiceRole-us-east-1-etl-project-pipeline"
+      ApplicationName: ${ProjectName}-application
+      ComputePlatform: Lambda
+
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: ${ProjectName}-pipeline
+      RoleArn: !GetAtt CodePipelineServiceRole.Arn
       ArtifactStore:
-        Type: "S3"
-        Location: "codepipeline-us-east-1-459445715306"
+        Type: S3
+        Location: codepipeline-${Region}-459445715306
       Stages:
-        - Name: "Source"
+        - Name: Source
           Actions:
-            - Name: "Source"
+            - Name: Source
               ActionTypeId:
-                Category: "Source"
-                Owner: "AWS"
-                Provider: "CodeStarSourceConnection"
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
                 Version: "1"
               RunOrder: 1
               Configuration:
-                BranchName: "master"
-                ConnectionArn: "arn:aws:codestar-connections:us-east-1:690469543125:connection/dd762c88-4f7b-46a4-adc5-08e609a4f75a"
-                FullRepositoryId: "StevenB96/aws-etl-project"
-                OutputArtifactFormat: "CODE_ZIP"
+                BranchName: master
+                ConnectionArn: arn:aws:codestar-connections:${Region}:690469543125:connection/dd762c88-4f7b-46a4-adc5-08e609a4f75a
+                FullRepositoryId: StevenB96/aws_etl_project
+                OutputArtifactFormat: CODE_ZIP
               OutputArtifacts:
-                - Name: "SourceArtifact"
-              InputArtifacts: []
-              Region: "us-east-1"
-              Namespace: "SourceVariables"
-        - Name: "Approval"
+                - Name: SourceArtifact
+              Region: ${Region}
+              Namespace: SourceVariables
+        - Name: Approval
           Actions:
-            - Name: "etl-project-deployment-approval"
+            - Name: ${ProjectName}-deployment-approval
               ActionTypeId:
-                Category: "Approval"
-                Owner: "AWS"
-                Provider: "Manual"
+                Category: Approval
+                Owner: AWS
+                Provider: Manual
                 Version: "1"
               RunOrder: 1
               Configuration: {}
-              OutputArtifacts: []
-              InputArtifacts: []
-              Region: "us-east-1"
-        - Name: "Build"
+              Region: ${Region}
+        - Name: Build
           Actions:
-            - Name: "Build"
+            - Name: Build
               ActionTypeId:
-                Category: "Build"
-                Owner: "AWS"
-                Provider: "CodeBuild"
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
                 Version: "1"
               RunOrder: 1
               Configuration:
-                ProjectName: "etl-project-build-project"
+                ProjectName: !Ref BuildProject
               OutputArtifacts:
-                - Name: "BuildArtifact"
+                - Name: BuildArtifact
               InputArtifacts:
-                - Name: "SourceArtifact"
-              Region: "us-east-1"
-              Namespace: "BuildVariables"
-        - Name: "Deploy"
+                - Name: SourceArtifact
+              Region: ${Region}
+              Namespace: BuildVariables
+        - Name: Deploy
           Actions:
-            - Name: "Deploy"
+            - Name: Deploy
               ActionTypeId:
-                Category: "Deploy"
-                Owner: "AWS"
-                Provider: "CodeDeploy"
+                Category: Deploy
+                Owner: AWS
+                Provider: CodeDeploy
                 Version: "1"
               RunOrder: 1
               Configuration:
-                ApplicationName: "etl-project-application"
-                DeploymentGroupName: "etl-project-deployment-group"
-              OutputArtifacts: []
+                ApplicationName: !Ref Application
+                DeploymentGroupName: ${ProjectName}-deployment-group
               InputArtifacts:
-                - Name: "BuildArtifact"
-              Region: "us-east-1"
-              Namespace: "DeployVariables"
+                - Name: BuildArtifact
+              Region: ${Region}
+              Namespace: DeployVariables
       Version: 2
-      PipelineType: "V2"
+      PipelineType: V2
 
-  # CodeDeploy Application
-  ETLProjectCodeDeployApplication:
-    Type: "AWS::CodeDeploy::Application"
+  DataProcessedBucket:
+    Type: "AWS::S3::Bucket"
     Properties:
-      ApplicationName: "etl-project-application"
+      BucketName: !Sub "${ProjectName}-data-processed"
+      VersioningConfiguration:
+        Status: "Disabled"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "AES256"
+      Region: !Ref Region
 
-  # CodeDeploy Deployment Group
-  ETLProjectCodeDeployDeploymentGroup:
-    Type: "AWS::CodeDeploy::DeploymentGroup"
+  DataRawBucket:
+    Type: "AWS::S3::Bucket"
     Properties:
-      ApplicationName: "etl-project-application"
-      DeploymentGroupName: "etl-project-deployment-group"
-      ServiceRoleArn: "arn:aws:iam::690469543125:role/service-role/CodeDeploy-service-role"
+      BucketName: !Sub "${ProjectName}-data-raw"
+      VersioningConfiguration:
+        Status: "Disabled"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "AES256"
+      Region: !Ref Region
+
+  MLModelBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${ProjectName}-ml-model"
+      VersioningConfiguration:
+        Status: "Disabled"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "AES256"
+      Region: !Ref Region
+
+  UploadsBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${ProjectName}-uploads"
+      VersioningConfiguration:
+        Status: "Disabled"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: "AES256"
+      Region: !Ref Region
 
 Outputs:
-  ETLProjectSecretAccessKeyId:
-    Value: !Ref ETLProjectSecretAccessKey
-    Description: "Secret ID for ETL project access key"
+  AccessKeyOutput:
+    Description: "Access Key for the IAM user."
+    Value: !Ref IAMUserAccessKey
