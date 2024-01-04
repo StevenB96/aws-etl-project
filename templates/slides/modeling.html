@@ -1,0 +1,114 @@
+<style>
+      #modelContainer {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+      }
+
+      #modelForm {
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+      }
+
+      #modelFormContainer {
+            width: 400px;
+      }
+
+      #modelFormContainer>h1,
+      #modelFormContainer>p {
+            text-align: center;
+      }
+
+      .modelFormLabel {
+            display: block;
+            margin-top: 10px;
+      }
+
+      #downloadTemplate,
+      #modelFormSumbit {
+            margin: 0 auto;
+            display: block;
+      }
+</style>
+
+<div id="modelContainer">
+      <div
+            class="formContainer"
+            id="modelFormContainer"
+            name="modelFormContainer"
+      >
+            <h1>CSV Upload</h1>
+            <p>Upload a .csv of movies to augment the dataset and improve the machine learning model.</p>
+            <button
+                  id="downloadTemplate"
+                  type="button"
+                  class="btn btn-primary"
+            >
+                  Download Template
+            </button>
+            <br />
+            <form
+                  action="/upload"
+                  method="post"
+                  id="modelForm"
+                  name="modelForm"
+                  enctype="multipart/form-data"
+            >
+                  <label for="csv">Select your .csv path</label>
+                  <input
+                        type="file"
+                        id="csv"
+                        name="csv"
+                        accept=".csv"
+                  >
+                  <br /><br />
+                  <button
+                        id="modelFormSumbit"
+                        name="modelFormSumbit"
+                        type="button"
+                        class="btn btn-primary modelFormSubmit"
+                        onclick="submitModelForm()"
+                  >
+                        Upload
+                  </button>
+            </form>
+      </div>
+</div>
+
+<script>
+      $(document).ready(function () {
+            // Event handler for Download Template button click
+            $('#downloadTemplate').on('click', function () {
+                  // Function to create a hidden iframe
+                  function createHiddenIframe() {
+                        return $('<iframe>', {
+                              id: 'hiddenFrame',
+                              css: {
+                                    display: 'none'
+                              }
+                        }).appendTo('body');
+                  }
+                  const iframe = createHiddenIframe();
+                  iframe.attr('src', '/template');
+                  iframe.load(function () {
+                        iframe.remove();
+                  });
+            });
+      });
+
+      function submitModelForm() {
+            const inputValue = $('#csv').val();
+            if (inputValue.trim() === '') {
+                  alert("Please fill in all the required fields.");
+            } else {
+                  const form = document.getElementById("modelForm");
+                  form.submit();
+            }
+      }
+</script>

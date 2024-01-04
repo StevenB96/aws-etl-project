@@ -1,0 +1,47 @@
+<style>
+	#designContainer {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: flex-start;
+	}
+</style>
+
+<div
+	class="modal"
+	tabindex="-1"
+>
+	<div class="modal-dialog modal-xl d-flex justify-content-center align-items-center">
+		<div class="modal-content">
+			<div class="modal-header justify-content-center">
+				<h5 class="modal-title">Prediction Results</h5>
+			</div>
+			<div class="modal-body">
+				{% set profit_str = request.args.get('profit') %}
+				{% if profit_str is defined and profit_str|length > 0 %}
+				{% set profit_float = profit_str|float %}
+				<p>Profit: ${{ "{:,.0f}".format(profit_float) }}</p>
+				{% endif %}
+			</div>
+			<div class="modal-footer justify-content-center">
+				<button
+					type="button"
+					class="btn btn-primary"
+					data-dismiss="modal"
+					onclick="redirectToPage()"
+				>Close</button>
+			</div>
+		</div>
+	</div>
+
+</div>
+
+<script>
+	function redirectToPage() {
+		window.location.href = '/';
+	}
+
+	$(document).ready(function () {
+		$('.modal').modal('show');
+	});
+</script>

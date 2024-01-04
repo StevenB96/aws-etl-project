@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, make_response, redirect, url_for
 import joblib
 from datetime import datetime
 from werkzeug.utils import secure_filename
@@ -107,7 +107,7 @@ class EtlProjectApp(Flask):
         self.route('/search', methods=['GET'])(self.search)
         self.route('/predict', methods=['POST'])(self.predict)
         self.route('/')(self.index)
-        self.route('/form')(self.index)
+        self.route('/<path:catch_all>', methods=['GET'])(self.catch_all_route)
 
     def download_template(self):
         # Read CSV data from the file
@@ -146,7 +146,7 @@ class EtlProjectApp(Flask):
             print(f"Error during file upload: {error}")
 
         # Return the rendered template with error information
-        return render_template('form.html', error=error)
+        return render_template('main.html', error=error)
 
     def search(self):
         search_term = request.args.get('search_term')
@@ -219,19 +219,21 @@ class EtlProjectApp(Flask):
 
         # Make predictions using the decision tree model
         profit_ratio_prediction = self.decision_tree_model.predict(input)
+        profit = round((profit_ratio_prediction[0] * budget) - budget)
+        # profit_string = f"${'{:,.0f}'.format(profit)}"
 
-        # Render the results using a template
-        return render_template(
-            'result.html',
-            profit=f"${'{:,.0f}'.format(round((profit_ratio_prediction[0] * budget) - budget))}"
-        )
+        # Redirect to the index route with profit as a query parameter
+        return redirect(url_for('index', profit=profit))
+
+    def catch_all_route(self, catch_all):
+        return render_template('main.html')
 
     def index(self):
-        return render_template('form.html')
+        return render_template('main.html')
 
 
 app = EtlProjectApp(__name__)
 
 if __name__ == '__main__':
     app.logger.setLevel(logging.DEBUG)
-    app.run()
+    app.run(debug=True)

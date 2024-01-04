@@ -8,50 +8,54 @@ Parameters:
     Type: String
     Default: "us-east-1"
 
-Description: |
-  AWS CloudFormation template for setting up users, access keys, and networking-related resources.
+Description: "AWS CloudFormation template for setting up users, access keys, and networking-related resources."
 
 Resources:
   IAMUser:
     Type: "AWS::IAM::User"
     Properties:
-      UserName: !Sub "${ProjectName}-user"
+      UserName: !Sub "${ProjectName}-usr"
       Tags:
         - Key: "Name"
           Value: !Ref ProjectName
+        - Key: "Project"
+          Value: ProjectName
 
   IAMUserAccessKey:
     Type: "AWS::IAM::AccessKey"
     Properties:
       UserName: !Ref IAMUser
-      Description: Access key for the IAM user.
 
   SecretManagerSecret:
     Type: "AWS::SecretsManager::Secret"
     Properties:
-      Name: !Sub "${ProjectName}-user-access-key"
-      SecretString: '{"AccessKeyId": !Ref IAMUserAccessKey, "SecretAccessKey": !GetAtt IAMUserAccessKey.SecretAccessKey}'
-      Description: Secret containing IAM user's access key information.
+      Name: !Sub "${ProjectName}-usr-acs-key"
+      SecretString: !Sub |
+        {
+          "AccessKeyId": "${IAMUserAccessKey}",
+          "SecretAccessKey": "${IAMUserAccessKey.SecretAccessKey}"
+        }
+      Description: "Secret containing IAM user access key information."
 
-  ElasticLoadBalancingRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub "${ProjectName}-ElasticLoadBalancingRole"
-      AssumeRolePolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: "Allow"
-            Principal:
-              Service: "elasticloadbalancing.amazonaws.com"
-            Action: "sts:AssumeRole"
-      Description: "Allows ELB to call AWS services on your behalf."
-      MaxSessionDuration: 3600
+  # ElasticLoadBalancingRole:
+  #   Type: AWS::IAM::Role
+  #   Properties:
+  #     RoleName: !Sub "${ProjectName}-ElasticLoadBalancingRole"
+  #     AssumeRolePolicyDocument:
+  #       Version: "2012-10-17"
+  #       Statement:
+  #         - Effect: "Allow"
+  #           Principal:
+  #             Service: "elasticloadbalancing.amazonaws.com"
+  #           Action: "sts:AssumeRole"
+  #     Description: "Allows ELB to call AWS services on your behalf."
+  #     MaxSessionDuration: 3600
 
-  DhcpOptions:
-    Type: "AWS::EC2::DHCPOptions"
-    Properties:
-      DomainName: "ec2.internal"
-      DomainNameServers: ["AmazonProvidedDNS"]
+  # DhcpOptions:
+  #   Type: "AWS::EC2::DHCPOptions"
+  #   Properties:
+  #     DomainName: "ec2.internal"
+  #     DomainNameServers: ["AmazonProvidedDNS"]
 
   VPC:
     Type: "AWS::EC2::VPC"
@@ -60,6 +64,8 @@ Resources:
       Tags:
         - Key: "Name"
           Value: !Sub "${ProjectName}-vpc"
+        - Key: "Project"
+          Value: ProjectName
       InstanceTenancy: "default"
 
   VpcDhcpOptionsAssociation:
@@ -74,6 +80,8 @@ Resources:
       Tags:
         - Key: "Name"
           Value: !Sub "${ProjectName}-int-gw"
+        - Key: "Project"
+          Value: ProjectName
 
   AttachGateway:
     Type: "AWS::EC2::VPCGatewayAttachment"
@@ -91,6 +99,8 @@ Resources:
       Tags:
         - Key: "Name"
           Value: !Sub "${ProjectName}-subnt-a"
+        - Key: "Project"
+          Value: ProjectName
 
   SubnetB:
     Type: "AWS::EC2::Subnet"
@@ -102,6 +112,8 @@ Resources:
       Tags:
         - Key: "Name"
           Value: !Sub "${ProjectName}-subnt-b"
+        - Key: "Project"
+          Value: ProjectName
 
   SubnetC:
     Type: "AWS::EC2::Subnet"
@@ -113,6 +125,8 @@ Resources:
       Tags:
         - Key: "Name"
           Value: !Sub "${ProjectName}-subnt-c"
+        - Key: "Project"
+          Value: ProjectName
 
   RouteTable:
     Type: "AWS::EC2::RouteTable"
@@ -121,6 +135,8 @@ Resources:
       Tags:
         - Key: "Name"
           Value: !Sub "${ProjectName}-rt-tbl"
+        - Key: "Project"
+          Value: ProjectName
 
   SubnetRouteTableAssociationA:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
@@ -176,24 +192,8 @@ Resources:
       Tags:
         - Key: "Name"
           Value: !Sub "${ProjectName}-sec-grp"
-
-  TargetGroup:
-    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
-    Properties:
-      Name: !Sub "${ProjectName}-tgt-grp"
-      Protocol: "HTTP"
-      Port: 80
-      VpcId: !Ref VPC
-      HealthCheckProtocol: "HTTP"
-      HealthCheckPort: "traffic-port"
-      HealthCheckEnabled: true
-      HealthCheckIntervalSeconds: 30
-      HealthCheckTimeoutSeconds: 5
-      HealthyThresholdCount: 5
-      UnhealthyThresholdCount: 2
-      HealthCheckPath: "/"
-      Matcher:
-        HttpCode: "200"
+        - Key: "Project"
+          Value: ProjectName
 
   LoadBalancer:
     Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
@@ -212,12 +212,10 @@ Resources:
       Tags:
         - Key: "Name"
           Value: !Sub "${ProjectName}-ld-blncr"
-      Role: !GetAtt ElasticLoadBalancingRole.Arn
-      DefaultActions:
-        - Type: "forward"
-          TargetGroupArn: !Ref TargetGroup
+        - Key: "Project"
+          Value: ProjectName
 
-  Listeners:
+  LBListener:
     Type: "AWS::ElasticLoadBalancingV2::Listener"
     Properties:
       DefaultActions:
@@ -227,6 +225,25 @@ Resources:
       Port: 80
       Protocol: HTTP
 
+  TargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      Name: !Sub "${ProjectName}-tgt-grp"
+      Protocol: "HTTP"
+      Port: 80
+      VpcId: !Ref VPC
+      TargetType: ip
+      HealthCheckProtocol: "HTTP"
+      HealthCheckPort: "traffic-port"
+      HealthCheckEnabled: true
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 2
+      HealthCheckPath: "/"
+      Matcher:
+        HttpCode: "200"
+
   NetworkACL:
     Type: "AWS::EC2::NetworkAcl"
     Properties:
@@ -234,6 +251,8 @@ Resources:
       Tags:
         - Key: "Name"
           Value: !Sub "${ProjectName}-net-acl"
+        - Key: "Project"
+          Value: ProjectName
 
   NetworkACLEntry1:
     Type: "AWS::EC2::NetworkAclEntry"
@@ -299,9 +318,7 @@ Resources:
             Action:
               - "sts:AssumeRole"
       MaxSessionDuration: 3600
-      Description: >
-        IAM Role for AWS Application Auto Scaling with ECS. 
-        Allows ECS Application Auto Scaling service to perform actions on ECS services and CloudWatch alarms.
+      Description: "IAM Role for AWS Application Auto Scaling with ECS. Allows ECS Application Auto Scaling service to perform actions on ECS services and CloudWatch alarms."
 
   ECSCluster:
     Type: AWS::ECS::Cluster
@@ -318,78 +335,126 @@ Resources:
         ScanOnPush: false
 
   ECSTaskDefinition:
-    Type: AWS::ECS::TaskDefinition
-    DependsOn: ECRContainerRepository
-    Properties:
-      Family: !Sub "${ProjectName}-tsk-def"
-      NetworkMode: "awsvpc"
-      Cpu: 1024
-      Memory: 3072
-      RequiresCompatibilities:
-        - "EC2"
-      ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
-      TaskRoleArn: !GetAtt ECSServiceRole.Arn
-      ContainerDefinitions:
-        - Name: !Sub "${ProjectName}-cont"
-          Image: !Ref ECRContainerRepository
-          Essential: true
-          PortMappings:
-            - ContainerPort: 80
-              HostPort: 80
-              Protocol: "tcp"
-      TaskPlacement:
-        Strategies:
-          - Type: "Spread"
-            Field: "attribute:ecs.availability-zone"
-          - Type: "Spread"
-            Field: "instanceId"
+      Type: AWS::ECS::TaskDefinition
+      DependsOn: ECRContainerRepository
+      Properties:
+        Family: !Sub "${ProjectName}-tsk-def"
+        NetworkMode: "awsvpc"
+        Cpu: 1024
+        Memory: 3072
+        RequiresCompatibilities:
+          - "EC2"
+        ExecutionRoleArn: !GetAtt ECSTaskExecutionRole.Arn
+        TaskRoleArn: !GetAtt ECSServiceRole.Arn
+        ContainerDefinitions:
+          - Name: !Sub "${ProjectName}-cont"
+            Image: !Sub "${ECRContainerRepository.RepositoryUri}:latest"
+            Essential: true
+            PortMappings:
+              - ContainerPort: 80
+                HostPort: 80
+                Protocol: "tcp"
 
-  ECSService:
-    Type: AWS::ECS::Service
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
     Properties:
-      Cluster: !Ref ECSCluster
-      ServiceName: !Sub "${ProjectName}-srvc"
-      TaskDefinition: !Ref ECSTaskDefinition
-      LaunchType: "EC2"
-      DesiredCount: 1
-      DeploymentConfiguration:
-        MaximumPercent: 200
-        MinimumHealthyPercent: 100
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          Subnets:
-            - !Ref SubnetA
-            - !Ref SubnetB
-            - !Ref SubnetC
-          SecurityGroups:
-            - !Ref SecurityGroup
-      LoadBalancers:
-        - TargetGroupArn: !Ref TargetGroup
-          ContainerName: "project-container"
-          ContainerPort: 80
-      HealthCheckGracePeriodSeconds: 0
+      InstanceProfileName: !Sub "${ProjectName}-istnc-prfl"
+      Roles:
+        - !Ref ECSServiceRole
 
-  ECSScalableTarget:
-    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+  LaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
     Properties:
-      MaxCapacity: 1
-      MinCapacity: 0
-      ResourceId: !Sub "service/${ECSService}/resource"
-      ScalableDimension: "ecs:service:DesiredCount"
-      ServiceNamespace: "ecs"
-      RoleARN: !GetAtt "AutoScalingRole.Arn"
+      LaunchTemplateName: !Sub "${ProjectName}-lnch-tmplt"
+      VersionDescription: "Initial version"
+      LaunchTemplateData:
+        IamInstanceProfile:
+          Arn: !GetAtt InstanceProfile.Arn
+        NetworkInterfaces:
+          - AssociatePublicIpAddress: true
+            DeleteOnTermination: true
+            DeviceIndex: 0
+            Groups:
+              - !Ref SecurityGroup
+        ImageId: ami-0c23116d02076c985
+        InstanceType: t2.micro
 
-  ECSScalingPolicy:
-    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+  AutoScalingGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
     Properties:
-      PolicyName: !Sub "${ProjectName}-scl-pol"
-      Description: "Auto Scaling policy for the project"
-      ScalingTargetId: !Ref ECSScalableTarget
-      PolicyType: "TargetTrackingScaling"
-      TargetTrackingScalingPolicyConfiguration:
-        TargetValue: 70.0
-        PredefinedMetricSpecification:
-          PredefinedMetricType: "ECSServiceAverageCPUUtilization"
+      AutoScalingGroupName: !Sub "${ProjectName}-auto-sc-grp"
+      LaunchTemplate:
+        LaunchTemplateId: !Ref LaunchTemplate
+        Version: !GetAtt LaunchTemplate.LatestVersionNumber
+      MinSize: 0
+      MaxSize: 1
+      DesiredCapacity: 0
+      VPCZoneIdentifier:
+        - !Ref SubnetA
+        - !Ref SubnetB
+        - !Ref SubnetC
+      HealthCheckType: 'EC2'
+      TerminationPolicies:
+        - 'Default'
+      Tags:
+        - Key: 'Name'
+          Value: !Sub "${ProjectName}-auto-sc-grp"
+          PropagateAtLaunch: true
+
+  # ECSService:
+  #   Type: AWS::ECS::Service
+  #   DependsOn: LBListener
+  #   Properties:
+  #     Cluster: !Ref ECSCluster
+  #     ServiceName: !Sub "${ProjectName}-srvc"
+  #     TaskDefinition: !Ref ECSTaskDefinition
+  #     LaunchType: "EC2"
+  #     DesiredCount: 1
+  #     DeploymentConfiguration:
+  #       MaximumPercent: 200
+  #       MinimumHealthyPercent: 100
+  #     NetworkConfiguration:
+  #       AwsvpcConfiguration:
+  #         Subnets:
+  #           - !Ref SubnetA
+  #           - !Ref SubnetB
+  #           - !Ref SubnetC
+  #         SecurityGroups:
+  #           - !Ref SecurityGroup
+  #     LoadBalancers:
+  #       - TargetGroupArn: !Ref TargetGroup
+  #         ContainerName: !Sub "${ProjectName}-cont"
+  #         ContainerPort: 80
+  #     HealthCheckGracePeriodSeconds: 0
+  #     DeploymentController:
+  #       Type: ECS
+  #     PlacementStrategies:
+  #       - Type: spread
+  #         Field: attribute:ecs.availability-zone
+  #       - Type: spread
+  #         Field: instanceId
+
+  # ECSScalableTarget:
+  #   Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+  #   Properties:
+  #     MaxCapacity: 1
+  #     MinCapacity: 0
+  #     ResourceId: !Sub "service/${ECSService}/resource"
+  #     ScalableDimension: "ecs:service:DesiredCount"
+  #     ServiceNamespace: "ecs"
+  #     RoleARN: !GetAtt "AutoScalingRole.Arn"
+
+  # ECSScalingPolicy:
+  #   Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+  #   Properties:
+  #     PolicyName: !Sub "${ProjectName}-scl-pol"
+  #     Description: "Auto Scaling policy for the project"
+  #     ScalingTargetId: !Ref ECSScalableTarget
+  #     PolicyType: "TargetTrackingScaling"
+  #     TargetTrackingScalingPolicyConfiguration:
+  #       TargetValue: 70.0
+  #       PredefinedMetricSpecification:
+  #         PredefinedMetricType: "ECSServiceAverageCPUUtilization"
 
   CodePipelineServiceRole:
     Type: AWS::IAM::Role
@@ -694,9 +759,7 @@ Resources:
               Service: codedeploy.amazonaws.com
             Action: sts:AssumeRole
       MaxSessionDuration: 3600
-      Description: >
-        Allows CodeDeploy to read S3 objects, invoke Lambda functions,
-        publish to SNS topics, and update ECS services on your behalf.
+      Description: "Allows CodeDeploy to read S3 objects, invoke Lambda functions, publish to SNS topics, and update ECS services on your behalf."
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS"
 
@@ -722,7 +785,9 @@ Resources:
       TimeoutInMinutes: 60
       QueuedTimeoutInMinutes: 480
       EncryptionKey: !Sub "arn:aws:kms:${Region}:690469543125:alias/aws/s3"
-      Tags: []
+      Tags:
+        - Key: "Project"
+          Value: ProjectName
       LogsConfig:
         CloudWatchLogs:
           Status: ENABLED
@@ -853,7 +918,3 @@ Resources:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: "AES256"
 
-Outputs:
-  AccessKeyOutput:
-    Description: "Access Key for the IAM user."
-    Value: !Ref IAMUserAccessKey

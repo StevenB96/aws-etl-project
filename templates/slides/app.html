@@ -1,0 +1,226 @@
+<style>
+      #appContainer {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            height: 100%;
+            padding: 20px;
+      }
+
+      #predictionForm {
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+      }
+
+      #predictionFormContainer {
+            width: 400px;
+      }
+
+      #predictionFormContainer>h1,
+      #predictionFormContainer>p {
+            text-align: center;
+      }
+
+      .predictionFormLabel {
+            display: block;
+            margin-top: 10px;
+      }
+
+      select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+      }
+
+      .select2-selection__choice {
+            background-color: transparent !important;
+            border: none !important;
+      }
+
+      .select2-selection__choice__remove {
+            display: none !important;
+      }
+
+      #predictionFormSumbit {
+            margin: 0 auto;
+            display: block;
+      }
+</style>
+
+<div id="appContainer">
+      <div
+            class="formContainer"
+            id="predictionFormContainer"
+            name="predictionFormContainer"
+      >
+            <h1>Movie Details</h1>
+            <p>Fill in all the form fields below to receive a profit prediction powered by machine learning for your
+                  movie concept.</p>
+            <form
+                  method="POST"
+                  action="/predict"
+                  class="form"
+                  id="predictionForm"
+                  name="predictionForm"
+            >
+                  <label
+                        class="predictionFormLabel"
+                        id="leadLabel"
+                        name="leadLabel"
+                        for="lead"
+                  >Lead</label>
+                  <select
+                        id="lead"
+                        name="lead"
+                        class="select2"
+                        required
+                  ></select>
+
+                  <label
+                        class="predictionFormLabel"
+                        id="directorLabel"
+                        name="directorLabel"
+                        for="director"
+                  >Director</label>
+                  <select
+                        id="director"
+                        name="director"
+                        class="select2"
+                        required
+                  ></select>
+
+                  <label
+                        class="predictionFormLabel"
+                        id="genreLabel"
+                        name="genreLabel"
+                        for="genre"
+                  >Genre</label>
+                  <select
+                        id="genre"
+                        name="genre"
+                        class="select2"
+                        required
+                  ></select>
+
+                  <label
+                        class="predictionFormLabel"
+                        id="budgetLabel"
+                        name="budgetLabel"
+                        for="budget"
+                  >Budget</label>
+                  <input
+                        type="range"
+                        class="custom-range"
+                        id="budget"
+                        name="budget"
+                        min="10000000"
+                        max="100000000"
+                        value="10000000"
+                        required
+                  >
+                  <span id="budgetValue">$10,000,000</span>
+                  <br/><br/>
+                  <button
+                        id="predictionFormSumbit"
+                        name="predictionFormSumbit"
+                        type="button"
+                        class="btn btn-primary predictionFormSubmit"
+                        onclick="submitPredictionForm()"
+                  >
+                        Predict
+                  </button>
+            </form>
+      </div>
+</div>
+
+<script>
+      $(document).ready(function () {
+            // Initiating the Select2 inputs
+            ['lead', 'director', 'genre'].forEach(function (field) {
+                  const selector = $('#' + field)
+                  selector.select2({
+                        placeholder: 'Select a ' + field,
+                        ajax: {
+                              url: '/search',
+                              dataType: 'json',
+                              data: function (params) {
+                                    return {
+                                          field_name: field,
+                                          search_term: params.term
+                                    };
+                              },
+                              processResults: function (data) {
+                                    return {
+                                          results: data.results.map(function (option) {
+                                                return {
+                                                      id: option.id,
+                                                      text: option[field]
+                                                };
+                                          })
+                                    };
+                              }
+                        },
+                        multiple: true,
+                        maximumSelectionLength: 1,
+                  }).on('select2:opening', function (event) {
+                        selector.val(null).trigger('change');
+                        selector.select2('close');
+                  });
+            });
+
+            // Event handler for Download Template button click
+            $('#downloadTemplate').on('click', function () {
+                  // Function to create a hidden iframe
+                  function createHiddenIframe() {
+                        return $('<iframe>', {
+                              id: 'hiddenFrame',
+                              css: {
+                                    display: 'none'
+                              }
+                        }).appendTo('body');
+                  }
+                  const iframe = createHiddenIframe();
+                  iframe.attr('src', '/template');
+                  iframe.load(function () {
+                        iframe.remove();
+                  });
+            });
+
+            // Event handler for budget input change
+            $('#budget').on('input', function () {
+                  // Function to present number in dollar format
+                  function numberWithCommas(x) {
+                        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                  }
+                  $('#budgetValue').text('$' + numberWithCommas($(this).val()));
+                  const budgetInput = parseInt($('#budget').val());
+                  if (budgetInput > 100000000) {
+                        $('#budget').val('100000000');
+                  }
+            });
+
+            // Event handler for prediction form submission
+            $('#predictionForm').submit(function (event) {
+                  const lead = $('#lead').val();
+                  const director = $('#director').val();
+                  const genre = $('#genre').val();
+                  const budget = $('#budget').val();
+
+                  if (lead === "" || director === "" || genre === "" || budget === "") {
+                        event.preventDefault();
+                        alert("Please fill in all the required fields.");
+                  }
+            });
+      });
+
+      function submitPredictionForm() {
+            const form = document.getElementById("predictionForm");
+            form.submit();
+      }
+</script>
