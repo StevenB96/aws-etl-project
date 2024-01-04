@@ -76,6 +76,7 @@
                         for="lead"
                   >Lead</label>
                   <select
+                        class="predictionFormInput"
                         id="lead"
                         name="lead"
                         class="select2"
@@ -89,6 +90,7 @@
                         for="director"
                   >Director</label>
                   <select
+                        class="predictionFormInput"
                         id="director"
                         name="director"
                         class="select2"
@@ -102,6 +104,7 @@
                         for="genre"
                   >Genre</label>
                   <select
+                        class="predictionFormInput"
                         id="genre"
                         name="genre"
                         class="select2"
@@ -116,7 +119,7 @@
                   >Budget</label>
                   <input
                         type="range"
-                        class="custom-range"
+                        class="custom-range predictionFormInput"
                         id="budget"
                         name="budget"
                         min="10000000"
@@ -125,7 +128,7 @@
                         required
                   >
                   <span id="budgetValue">$10,000,000</span>
-                  <br/><br/>
+                  <br /><br />
                   <button
                         id="predictionFormSumbit"
                         name="predictionFormSumbit"
@@ -204,23 +207,44 @@
                         $('#budget').val('100000000');
                   }
             });
-
-            // Event handler for prediction form submission
-            $('#predictionForm').submit(function (event) {
-                  const lead = $('#lead').val();
-                  const director = $('#director').val();
-                  const genre = $('#genre').val();
-                  const budget = $('#budget').val();
-
-                  if (lead === "" || director === "" || genre === "" || budget === "") {
-                        event.preventDefault();
-                        alert("Please fill in all the required fields.");
-                  }
-            });
       });
 
       function submitPredictionForm() {
-            const form = document.getElementById("predictionForm");
-            form.submit();
+            const genre = $('#genre').val();
+            console.log(genre)
+            function isValidNumber(value) {
+                  if (typeof value === 'number' && !isNaN(value)) {
+                        return true;
+                  } else if (typeof value === 'string') {
+                        return !isNaN(Number(value));
+                  } else {
+                        return false;
+                  }
+            }
+
+            let allValuesSatisfyCondition = true;
+            console.log($('.predictionFormInput'))
+            $('.predictionFormInput').each(function () {
+                  let elementValue = null
+
+                  if ($(this).hasClass('select2-hidden-accessible')) {
+                        elementValue = $(this).select2('val')[0]
+                  } else {
+                        elementValue = $(this).val()
+                  }
+
+                  if (!isValidNumber(elementValue)) {
+                        allValuesSatisfyCondition = false;
+                  }
+            });
+
+            if (allValuesSatisfyCondition) {
+                  console.log('A')
+                  const form = document.getElementById("predictionForm");
+                  form.submit();
+            } else {
+                  console.log('B')
+                  alert("Please fill in all the required fields");
+            }
       }
 </script>

@@ -220,7 +220,6 @@ class EtlProjectApp(Flask):
         # Make predictions using the decision tree model
         profit_ratio_prediction = self.decision_tree_model.predict(input)
         profit = round((profit_ratio_prediction[0] * budget) - budget)
-        # profit_string = f"${'{:,.0f}'.format(profit)}"
 
         # Redirect to the index route with profit as a query parameter
         return redirect(url_for('index', profit=profit))

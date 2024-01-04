@@ -18,9 +18,9 @@
 			</div>
 			<div class="modal-body">
 				{% set profit_str = request.args.get('profit') %}
-				{% if profit_str is defined and profit_str|length > 0 %}
-				{% set profit_float = profit_str|float %}
-				<p>Profit: ${{ "{:,.0f}".format(profit_float) }}</p>
+				{% if profit_str is defined and profit_str != '' %}
+					{% set profit_float = profit_str|float %}
+					<p>Profit: ${{ "{:,.0f}".format(profit_float) }}</p>
 				{% endif %}
 			</div>
 			<div class="modal-footer justify-content-center">
