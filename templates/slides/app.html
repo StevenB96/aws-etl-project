@@ -243,8 +243,8 @@
                   .then(response => response.json())
                   .then(data => {
                         $('#resultsImage').attr('src', 'data:image/png;base64,' + data.image_string);
-                        $('#profitText').text(`You made a profit of: ${data.profit}`);
-                        $('#ratingText').text(`Your movie is rated in the top: ${100 - data.score_percentile}%`);
+                        $('#profitText').text(`Your predicted profit is ${data.profit}.`);
+                        $('#ratingText').text(`The prediction is rated in the top ${Math.max(100 - data.score_percentile, 1)}% of all user predictions.`);
                         $('#resultsModal').css('display', 'block');
                   })
                   .catch(error => console.error('Error:', error));
