@@ -61,9 +61,7 @@
             <h1>Design a Movie!</h1>
             <p>Fill in all the form fields below to receive a profit prediction powered by machine learning for your
                   movie concept.</p>
-            <form
-                  method="POST"
-                  action="/predict"
+            <div
                   class="form"
                   id="predictionForm"
                   name="predictionForm"
@@ -137,7 +135,7 @@
                   >
                         Predict
                   </button>
-            </form>
+            </div>
       </div>
 </div>
 
@@ -209,8 +207,6 @@
       });
 
       function submitPredictionForm() {
-            const genre = $('#genre').val();
-            console.log(genre)
             function isValidNumber(value) {
                   if (typeof value === 'number' && !isNaN(value)) {
                         return true;
@@ -222,28 +218,36 @@
             }
 
             let allValuesSatisfyCondition = true;
-            console.log($('.predictionFormInput'))
-            $('.predictionFormInput').each(function () {
-                  let elementValue = null
 
-                  if ($(this).hasClass('select2-hidden-accessible')) {
-                        elementValue = $(this).select2('val')[0]
-                  } else {
-                        elementValue = $(this).val()
-                  }
+            $('.predictionFormInput').each(function () {
+                  let elementValue = $(this).hasClass('select2-hidden-accessible') ? $(this).select2('val')[0] : $(this).val();
 
                   if (!isValidNumber(elementValue)) {
                         allValuesSatisfyCondition = false;
                   }
             });
 
-            if (allValuesSatisfyCondition) {
-                  console.log('A')
-                  const form = document.getElementById("predictionForm");
-                  form.submit();
-            } else {
-                  console.log('B')
+            if (!allValuesSatisfyCondition) {
                   alert("Please fill in all the required fields.");
+                  return;
             }
+
+            const formData = {};
+            $('.predictionFormInput').each(function () {
+                  const elementName = this.name;
+                  let elementValue = $(this).hasClass('select2-hidden-accessible') ? $(this).select2('val')[0] : $(this).val();
+                  formData[elementName] = elementValue;
+            });
+
+            fetch('/predict', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(formData) })
+                  .then(response => response.json())
+                  .then(data => {
+                        $('#resultsImage').attr('src', 'data:image/png;base64,' + data.image_string);
+                        $('#profitText').text(`You made a profit of: ${data.profit}`);
+                        $('#ratingText').text(`Your movie is rated in the top: ${100 - data.score_percentile}%`);
+                        $('#resultsModal').css('display', 'block');
+                  })
+                  .catch(error => console.error('Error:', error));
       }
+
 </script>

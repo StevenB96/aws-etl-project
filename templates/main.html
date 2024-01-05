@@ -75,13 +75,10 @@
                 <div class="carousel-caption d-none d-md-block">
                 </div><br /><br />
                 {% include 'slides/modeling.html' %}
-
             </div>
         </div>
     </div>
-    {% if request.args.get('profit') %}
     {% include 'components/results_modal.html' %}
-    {% endif %}
 </body>
 
 <script>
