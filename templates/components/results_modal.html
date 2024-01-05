@@ -3,11 +3,19 @@
 		display: none;
 	}
 
-	#resultsImage {}
+	#resultsImage {
+		margin: 0 auto;
+	}
 
 	#resultsModal p {
 		text-align: center;
 	}
+
+	.modal-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 </style>
 
 <div
@@ -15,12 +23,12 @@
 	class="modal"
 	tabindex="-1"
 >
-	<div class="modal-dialog modal-xl d-flex justify-content-center align-items-center">
+	<div class="modal-dialog d-flex justify-content-center align-items-center">
 		<div class="modal-content">
 			<div class="modal-header justify-content-center">
 				<h5 class="modal-title">Score</h5>
 			</div>
-			<div class="modal-body">
+			<div class="modal-body justify-content-center" style="max-height: 400px; overflow-y: auto;">
 				<img
 					id="resultsImage"
 					src=""
