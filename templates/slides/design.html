@@ -11,6 +11,7 @@
       }
 
       #articleContainer>h1,
+      #articleContainer>h4,
       #articleContainer>p {
             text-align: center;
       }
@@ -27,7 +28,8 @@
             id="articleContainer"
             name="articleContainer"
       >
-            <h1>Application Design</h1>
+            <h1>Project Design</h1>
+            <h4>Application Design</h4>
             <p>This application has 3 major functions: to predict the outcome of movie concepts, to upload user movie data to augment the dataset, and to constantly update the prediction model.</p>
             <p>There are 5 entities involved in performing those functions (excluding hosting entities): the developer developing and testing the application, the web application serving content, the lambda function processing data, and the AWS services storing data (S3 and IAM).</p>
             <img
@@ -35,7 +37,7 @@
                   alt="Application Infrastructure"
             >
             <br /><br />
-            <h1>AWS Infrastructure Design</h1>
+            <h4>AWS Infrastructure Design</h4>
             <p>There are over 20 entities that are part of the AWS infrastructure of this app. The diagram below excludes roles, a number of minor services and services already represented in the application design.</p>
             <p>The design is aimed at improving the operational efficiency and cost effectiveness of the infrastructure, while allowing for flexible load capacity.</p>
             <p>Three key services are: the application loadbalancer which distributes web traffic across the EC2 instances in the target group, the Elastic Container Service which scales the application and EC2 instances within the target group in and out depending on demand, and the CodePipeline which speeds up deployment and integrates with ECS.</p>
