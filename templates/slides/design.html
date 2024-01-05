@@ -1,112 +1,41 @@
 <style>
       #designContainer {
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
+            padding: 20px;
       }
 
-      #appDesign,
-      #awsDesign {
-            height: 90vh;
+      #articleContainer {
+            width: 600px;
       }
 
-      .nav {
-            width: 80%;
-            display: flex;
-            justify-content: space-around;
-      }
-
-      .nav-item {
-            flex: 1;
+      #articleContainer>h1,
+      #articleContainer>p {
             text-align: center;
-            border: none !important;
-            margin: 0px;
       }
 
-      .nav-link {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            cursor: pointer;
-            color: #007bff !important;
-            background-color: #fff !important;
-            border: None !important;
-            padding: 10px;
-            height: 10vh !important;
-            font-weight: bold;
-            border-radius: 3vh;
-      }
-
-      .nav-tabs .nav-item {
-            margin-bottom: 0px !important;
-      }
-
-      .nav-tabs {
-            border: None !important;
-      }
-
-      .nav-link.active {
-            color: #fff !important;
-            background-color: #007bff !important;
-            border: 1vh solid black !important;
-      }
-
-      .tab-content {
-            display: none;
-      }
-
-      .tab-content.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 80%;
-      }
-
-      .tab-content img {
-            display: block;
-            height: 90vh !important;
+      img {
             max-width: 100%;
-            object-fit: contain;
-            margin: auto auto !important;
+            height: auto;
       }
 </style>
 
 <div id="designContainer">
-      <ul class="nav nav-tabs">
-            <li class="nav-item">
-                  <a
-                        id="appDesignLink"
-                        class="nav-link active"
-                        href="#"
-                        onclick="showTab('appDesign')"
-                  >Application Design</a>
-            </li>
-            <li class="nav-item">
-                  <a
-                        id="awsDesignLink"
-                        class="nav-link"
-                        href="#"
-                        onclick="showTab('awsDesign')"
-                  >AWS Infrastructure Design</a>
-            </li>
-      </ul>
-
       <div
-            id="appDesign"
-            class="tab-content active"
+            class="formContainer"
+            id="articleContainer"
+            name="articleContainer"
       >
+            <h1>Application Design</h1>
+            <p>This is a dummy description for your application design. You can replace this text with the actual description of your application design.</p>
             <img
                   src="https://upload.wikimedia.org/wikipedia/commons/b/bb/Flussregenpfeifer_im_flachen_Wasser_01.jpg"
                   alt="Featured Picture"
             >
-      </div>
-
-      <div
-            id="awsDesign"
-            class="tab-content"
-      >
+            <br /><br />
+            <h1>Infrastructure Design</h1>
+            <p>This is a dummy description for your infrastructure design. You can replace this text with the actual description of your infrastructure design.</p>
             <img
                   src="https://upload.wikimedia.org/wikipedia/commons/4/41/Thomas_Eakins%2C_American_-_Portrait_of_Dr._Samuel_D._Gross_%28The_Gross_Clinic%29_-_Google_Art_Project.jpg"
                   alt="Featured Picture"
@@ -115,25 +44,5 @@
 </div>
 
 <script>
-      function showTab(tabId) {
-            // Hide all tab contents
-            $('.tab-content').removeClass('active');
 
-            // Show the selected tab content
-            $('#' + tabId).addClass('active');
-      }
-
-      function showTab(tabId) {
-            // Remove active class from all nav links
-            $('.nav-link').removeClass('active');
-
-            // Add active class to the clicked nav link
-            $('#' + tabId + 'Link').addClass('active');
-
-            // Hide all tab contents
-            $('.tab-content').removeClass('active');
-
-            // Show the selected tab content
-            $('#' + tabId).addClass('active');
-      }
 </script>
